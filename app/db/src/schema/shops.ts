@@ -1,13 +1,5 @@
 import { sql } from 'drizzle-orm';
-import {
-  bigint,
-  char,
-  datetime,
-  mysqlTable,
-  smallint,
-  varbinary,
-  varchar,
-} from 'drizzle-orm/mysql-core';
+import { bigint, char, datetime, mysqlTable, smallint, varchar } from 'drizzle-orm/mysql-core';
 
 // Tenant root. Every other tenant table carries shop_id and leads its
 // composite indexes with it - see SCHEMA.md §1.
@@ -16,10 +8,14 @@ export const shops = mysqlTable('shops', {
   shopDomain: varchar('shop_domain', { length: 255 }).notNull().unique(),
   shopifyShopGid: varchar('shopify_shop_gid', { length: 255 }),
 
-  // Ciphertext is bytes; VARBINARY avoids a collation being applied to it.
-  accessTokenCiphertext: varbinary('access_token_ciphertext', { length: 512 }),
-  accessTokenIv: varbinary('access_token_iv', { length: 12 }),
-  accessTokenTag: varbinary('access_token_tag', { length: 16 }),
+  // Stored as base64, not raw VARBINARY: this drizzle-orm version maps
+  // VARBINARY reads through Buffer.toString() (UTF-8), which silently
+  // corrupts arbitrary ciphertext bytes. Base64 round-trips exactly
+  // through the ORM's string handling while keeping the same encrypted-
+  // at-rest property.
+  accessTokenCiphertext: varchar('access_token_ciphertext', { length: 700 }),
+  accessTokenIv: varchar('access_token_iv', { length: 24 }),
+  accessTokenTag: varchar('access_token_tag', { length: 32 }),
   keyVersion: smallint('key_version', { unsigned: true }).notNull().default(1),
 
   scopes: varchar('scopes', { length: 512 }),

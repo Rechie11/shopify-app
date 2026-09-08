@@ -1,2 +1,4 @@
 export * from './shops.js';
 export * from './sessions.js';
+export * from './activity.js';
+export * from './ops.js';

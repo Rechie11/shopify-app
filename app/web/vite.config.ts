@@ -15,5 +15,14 @@ export default defineConfig({
     // The Shopify CLI's tunnel proxies to this dev server during
     // `shopify app dev`; host-checking is relaxed for the tunnel host.
     allowedHosts: true,
+    // The tunnel only fronts the frontend dev server, so backend-bound
+    // paths have to be forwarded from here. `BACKEND_PORT` is injected by
+    // the CLI per run alongside this server's own `PORT`.
+    proxy: {
+      '^/(api|webhooks|auth)(/|$)': {
+        target: `http://127.0.0.1:${process.env.BACKEND_PORT ?? 3000}`,
+        changeOrigin: false,
+      },
+    },
   },
 });
