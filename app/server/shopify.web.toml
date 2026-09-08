@@ -1,0 +1,5 @@
+# Tells the Shopify CLI how to run this workspace under `shopify app dev`.
+roles = ["backend"]
+
+[commands]
+dev = "npm run dev"

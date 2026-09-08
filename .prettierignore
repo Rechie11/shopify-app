@@ -1,0 +1,6 @@
+node_modules
+dist
+build
+app/db/migrations
+Claude
+package-lock.json

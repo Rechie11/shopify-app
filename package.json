@@ -1,0 +1,37 @@
+{
+  "name": "ember-and-ash",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "description": "Ember & Ash - Shopify theme + Bundle Studio embedded admin app",
+  "engines": {
+    "node": ">=22"
+  },
+  "workspaces": [
+    "app/*"
+  ],
+  "scripts": {
+    "dev": "shopify app dev",
+    "dev:server": "npm run dev --workspace app/server",
+    "dev:web": "npm run dev --workspace app/web",
+    "build": "npm run build --workspace app/web && npm run build --workspace app/server",
+    "db:generate": "npm run db:generate --workspace app/db",
+    "db:migrate": "npm run db:migrate --workspace app/db",
+    "db:studio": "npm run db:studio --workspace app/db",
+    "db:reset": "npm run db:reset --workspace app/db && npm run seed --workspace app/server",
+    "seed": "npm run seed --workspace app/server",
+    "test": "npm run test --workspaces --if-present",
+    "test:e2e": "npm run test:e2e --workspace app/web --if-present",
+    "lint": "eslint .",
+    "format": "prettier --check .",
+    "typecheck": "npm run typecheck --workspaces --if-present"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.15.0",
+    "eslint": "^9.15.0",
+    "eslint-config-prettier": "^9.1.0",
+    "prettier": "^3.3.3",
+    "typescript": "^5.6.3",
+    "typescript-eslint": "^8.15.0"
+  }
+}

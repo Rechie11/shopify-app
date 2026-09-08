@@ -1,0 +1,25 @@
+node_modules/
+dist/
+build/
+.env
+.env.local
+*.log
+.DS_Store
+Thumbs.db
+
+# Shopify CLI
+.shopify/
+shopify.app.*.toml
+!shopify.app.toml
+
+# Vite
+app/web/dist/
+app/web/.vite/
+
+# TypeScript
+*.tsbuildinfo
+
+# Drizzle
+app/db/drizzle/
+
+.superpowers/

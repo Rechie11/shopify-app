@@ -1,0 +1,29 @@
+{
+  "name": "@ember-and-ash/db",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "main": "./src/schema/index.ts",
+  "types": "./src/schema/index.ts",
+  "exports": {
+    ".": "./src/schema/index.ts",
+    "./client": "./src/client.ts"
+  },
+  "scripts": {
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "tsx src/migrate.ts",
+    "db:studio": "drizzle-kit studio",
+    "db:reset": "tsx src/reset.ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "drizzle-orm": "^0.45.2",
+    "mysql2": "^3.11.4",
+    "ulid": "^2.3.0"
+  },
+  "devDependencies": {
+    "drizzle-kit": "^0.31.10",
+    "tsx": "^4.19.2",
+    "typescript": "^5.6.3"
+  }
+}

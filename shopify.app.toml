@@ -1,0 +1,43 @@
+# Learn more about configuring your app at https://shopify.dev/docs/apps/tools/cli/configuration
+
+client_id = "c3cc6b9d2c2972803831e57225477431"
+name = "Bundle Studio"
+application_url = "https://example.com"
+embedded = true
+
+[access_scopes]
+# Learn more at https://shopify.dev/docs/apps/tools/cli/configuration#access_scopes
+scopes = "read_inventory,read_orders,read_products,write_discounts,write_products"
+
+[auth]
+redirect_urls = [ "https://example.com/api/auth" ]
+
+[webhooks]
+api_version = "2026-07"
+
+  [[webhooks.subscriptions]]
+  topics = ["inventory_levels/update"]
+  uri = "/webhooks/inventory"
+
+  [[webhooks.subscriptions]]
+  topics = ["products/update", "products/delete"]
+  uri = "/webhooks/products"
+
+  [[webhooks.subscriptions]]
+  topics = ["app/uninstalled"]
+  uri = "/webhooks/app"
+
+# orders/create, orders/cancelled, and the mandatory privacy_compliance
+# webhooks (customers/data_request, customers/redact, shop/redact) all carry
+# protected customer data and need that access approved in the Partner
+# Dashboard first (App setup -> API access -> Protected customer data) -
+# see ARCHITECTURE.md §6.3. Re-add on Day 1 once that's requested.
+
+[app_proxy]
+url = "https://example.com/proxy"
+subpath = "flights"
+prefix = "apps"
+
+[build]
+include_config_on_deploy = true
+automatically_update_urls_on_dev = true
