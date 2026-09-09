@@ -80,7 +80,7 @@ export async function webhookRoutes(
       await enqueue(opts.db, {
         shopId: shop.id,
         type: jobType(topic),
-        payload: JSON.parse(request.rawBody.toString('utf8')) as unknown,
+        payload: { topic, body: JSON.parse(request.rawBody.toString('utf8')) } as unknown,
         dedupeKey: dedupeKeyFor?.(topic, webhookId),
       });
     }
@@ -92,29 +92,35 @@ export async function webhookRoutes(
     handleWebhook(request, reply, () => 'shop.uninstalled'),
   );
 
+  // inventory_levels/update -> inventory.sync: record the snapshot and
+  // fan out a debounced score.recompute per affected bundle.
   app.post('/webhooks/inventory', (request, reply) =>
     handleWebhook(
       request,
       reply,
-      () => 'webhook.process',
+      () => 'inventory.sync',
       (_topic, webhookId) => webhookId,
     ),
   );
 
+  // products/update, products/delete -> products.sync: cache refresh or
+  // the broken-component alert.
   app.post('/webhooks/products', (request, reply) =>
     handleWebhook(
       request,
       reply,
-      () => 'webhook.process',
+      () => 'products.sync',
       (_topic, webhookId) => webhookId,
     ),
   );
 
+  // orders/create, orders/cancelled -> metrics.rollup: velocity rollup +
+  // bundle attribution from the _flight_id line-item property.
   app.post('/webhooks/orders', (request, reply) =>
     handleWebhook(
       request,
       reply,
-      () => 'webhook.process',
+      () => 'metrics.rollup',
       (_topic, webhookId) => webhookId,
     ),
   );

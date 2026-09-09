@@ -34,3 +34,39 @@ export async function enqueue(db: DbOrTx, opts: EnqueueOptions): Promise<void> {
       set: { runAt: sql`LEAST(\`run_at\`, VALUES(\`run_at\`))` },
     });
 }
+
+const RECOMPUTE_DEBOUNCE_MS = 60_000;
+
+// A burst of forty inventory webhooks collapses into one recompute per
+// bundle, firing 60s after the first event in the burst (LEAST keeps the
+// earliest run_at, so the delay is bounded even under sustained updates).
+// See ARCHITECTURE.md §7, SCHEMA.md §4.7.
+export async function enqueueScoreRecompute(
+  db: DbOrTx,
+  shopId: number,
+  bundleId: number,
+): Promise<void> {
+  await enqueue(db, {
+    shopId,
+    type: 'score.recompute',
+    payload: { bundleId },
+    dedupeKey: String(bundleId),
+    runAt: new Date(Date.now() + RECOMPUTE_DEBOUNCE_MS),
+  });
+}
+
+// Immediate (no debounce) variant for explicit user actions - publish,
+// pause, and composition edits - where the merchant expects the score to
+// reflect their action right away, not up to a minute later.
+export async function enqueueScoreRecomputeNow(
+  db: DbOrTx,
+  shopId: number,
+  bundleId: number,
+): Promise<void> {
+  await enqueue(db, {
+    shopId,
+    type: 'score.recompute',
+    payload: { bundleId },
+    dedupeKey: String(bundleId),
+  });
+}

@@ -9,6 +9,7 @@ import {
   listBundles,
   updateBundle,
 } from '../../repositories/bundle.repository.js';
+import { getScoreHistory } from '../../repositories/score.repository.js';
 import {
   createDraftBundle,
   deleteBundle,
@@ -110,6 +111,16 @@ export async function bundleRoutes(app: FastifyInstance, opts: BundleRoutesOptio
       throw new NotFoundError('Bundle not found');
     }
     return bundle;
+  });
+
+  app.get('/bundles/:publicId/score/history', async (request) => {
+    const shop = requireShopContext(request);
+    const { publicId } = publicIdParamSchema.parse(request.params);
+    const bundle = await findBundleByPublicId(opts.db, shop.shopId, publicId);
+    if (!bundle) {
+      throw new NotFoundError('Bundle not found');
+    }
+    return { history: await getScoreHistory(opts.db, bundle.id) };
   });
 
   app.patch('/bundles/:publicId', async (request) => {

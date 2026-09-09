@@ -20,6 +20,7 @@ export interface BundleItem {
   id: number;
   productGid: string;
   variantGid: string;
+  inventoryItemGid: string | null;
   productTitleCache: string | null;
   variantTitleCache: string | null;
   unitPriceCents: number | null;
@@ -114,11 +115,14 @@ export interface SaveCompositionInput {
   items: Array<{
     productGid: string;
     variantGid: string;
-    productTitleCache?: string;
-    variantTitleCache?: string;
-    unitPriceCents?: number;
+    inventoryItemGid?: string | undefined;
+    productTitleCache?: string | undefined;
+    variantTitleCache?: string | undefined;
+    unitPriceCents?: number | undefined;
     position: number;
     isRequired: boolean;
+    heatLevel?: number | undefined;
+    flavorProfile?: string | undefined;
   }>;
   tiers: Array<{ minQuantity: number; discountBps: number }>;
 }
@@ -144,6 +148,78 @@ export function deleteBundle(publicId: string): Promise<void> {
 
 export function searchProducts(query: string): Promise<ProductSearchResponse> {
   return request(`/products/search?q=${encodeURIComponent(query)}`);
+}
+
+export interface BundleScore {
+  id: number;
+  score: string;
+  band: 'healthy' | 'watch' | 'at_risk';
+  inventoryScore: string | null;
+  marginScore: string | null;
+  tractionScore: string | null;
+  balanceScore: string | null;
+  minDaysCover: string | null;
+  limitingVariantGid: string | null;
+  primaryReason: string | null;
+  recommendedAction: {
+    swapOutVariantGid: string;
+    swapInVariantGid: string;
+    swapInProductTitle: string;
+    daysOfCover: number;
+    resultingBalanceScore: number;
+  } | null;
+  computedAt: string;
+}
+
+export function getScoreHistory(publicId: string): Promise<{ history: BundleScore[] }> {
+  return request(`/bundles/${publicId}/score/history`);
+}
+
+export interface Alert {
+  id: number;
+  bundleId: number | null;
+  alertType: string;
+  severity: 'info' | 'warning' | 'critical';
+  title: string;
+  body: string | null;
+  status: 'open' | 'acknowledged' | 'resolved';
+  createdAt: string;
+}
+
+export function listAlerts(): Promise<{ alerts: Alert[] }> {
+  return request('/alerts');
+}
+
+export function acknowledgeAlert(id: number): Promise<void> {
+  return request(`/alerts/${id}/acknowledge`, { method: 'POST' });
+}
+
+export interface ActivityLogEntry {
+  id: number;
+  actorType: string;
+  actorLabel: string;
+  entityType: string;
+  entityId: number;
+  action: string;
+  createdAt: string;
+}
+
+export interface DashboardSummary {
+  bundleCounts: {
+    total: number;
+    draft: number;
+    publishing: number;
+    active: number;
+    paused: number;
+    archived: number;
+  };
+  scoreDistribution: { healthy: number; watch: number; at_risk: number };
+  openAlerts: Alert[];
+  recentActivity: ActivityLogEntry[];
+}
+
+export function getDashboardSummary(): Promise<DashboardSummary> {
+  return request('/dashboard/summary');
 }
 
 export { ApiError };

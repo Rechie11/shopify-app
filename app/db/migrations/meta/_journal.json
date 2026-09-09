@@ -29,6 +29,20 @@
       "when": 1788882226864,
       "tag": "0003_volatile_falcon",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "5",
+      "when": 1788924816364,
+      "tag": "0004_spotty_sleeper",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "5",
+      "when": 1788925280713,
+      "tag": "0005_mute_nicolaos",
+      "breakpoints": true
     }
   ]
 }

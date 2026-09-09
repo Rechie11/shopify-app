@@ -1,5 +1,8 @@
+import { desc, eq } from 'drizzle-orm';
 import type { DbOrTx } from '@ember-and-ash/db/client';
 import { activityLog } from '@ember-and-ash/db';
+
+export type ActivityLogEntry = typeof activityLog.$inferSelect;
 
 export interface WriteActivityInput {
   shopId: number;
@@ -33,4 +36,17 @@ export async function writeActivity(db: DbOrTx, input: WriteActivityInput): Prom
     metadata: input.metadata,
     requestId: input.requestId,
   });
+}
+
+export async function listRecentActivity(
+  db: DbOrTx,
+  shopId: number,
+  limit = 20,
+): Promise<ActivityLogEntry[]> {
+  return db
+    .select()
+    .from(activityLog)
+    .where(eq(activityLog.shopId, shopId))
+    .orderBy(desc(activityLog.createdAt))
+    .limit(limit);
 }

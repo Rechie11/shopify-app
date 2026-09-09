@@ -4,6 +4,7 @@ import { type ProductSearchNode, type ProductSearchVariant, searchProducts } fro
 export interface PickedVariant {
   productGid: string;
   variantGid: string;
+  inventoryItemGid: string;
   productTitleCache: string;
   variantTitleCache: string;
   unitPriceCents: number;
@@ -33,6 +34,7 @@ export function ProductPicker({ onPick }: { onPick: (variant: PickedVariant) => 
     onPick({
       productGid: product.id,
       variantGid: variant.id,
+      inventoryItemGid: variant.inventoryItem.id,
       productTitleCache: product.title,
       variantTitleCache: variant.title,
       unitPriceCents: Math.round(parseFloat(variant.price) * 100),

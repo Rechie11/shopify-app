@@ -22,7 +22,7 @@ import {
   setBundleStatus,
   softDeleteBundle,
 } from '../repositories/bundle.repository.js';
-import { enqueue } from '../jobs/queue.js';
+import { enqueue, enqueueScoreRecomputeNow } from '../jobs/queue.js';
 import { writeActivity } from './activity.service.js';
 
 type AdminClient = ReturnType<typeof createAdminClient>;
@@ -86,6 +86,13 @@ export async function saveBundleComposition(
     before: { itemCount: bundle.items.length, tierCount: bundle.tiers.length },
     after: { itemCount: input.items.length, tierCount: input.tiers.length },
   });
+
+  if (bundle.status === 'active') {
+    // "Any bundle edit" is a recompute trigger (SCHEMA.md §4.7) - an
+    // active bundle's score should reflect its current composition
+    // immediately, not wait for the next webhook or the nightly sweep.
+    await enqueueScoreRecomputeNow(db, shopId, bundle.id);
+  }
 }
 
 function buildDiscountVariables(
@@ -175,6 +182,8 @@ export async function attemptPublish(
       after: { status: 'active', discountGid },
     });
   });
+
+  await enqueueScoreRecomputeNow(db, shopId, bundle.id);
 }
 
 // Publish is a transaction with an external side effect, ordered

@@ -6,13 +6,18 @@ import { webhookRoutes } from './http/routes/webhooks.js';
 import { authRoutes } from './http/routes/auth.js';
 import { bundleRoutes } from './http/routes/bundles.js';
 import { productRoutes } from './http/routes/products.js';
+import { alertRoutes } from './http/routes/alerts.js';
+import { dashboardRoutes } from './http/routes/dashboard.js';
 import authPlugin from './http/plugins/auth.js';
 import errorHandlerPlugin from './http/plugins/error-handler.js';
 import { registerJobHandler, startWorkerLoop } from './jobs/worker.js';
 import { handleShopUninstalled } from './jobs/handlers/shop-uninstalled.js';
 import { handleCompliance } from './jobs/handlers/compliance.js';
-import { handleWebhookProcess } from './jobs/handlers/webhook-process.js';
 import { createDiscountReconcileHandler } from './jobs/handlers/discount-reconcile.js';
+import { handleInventorySync } from './jobs/handlers/inventory-sync.js';
+import { handleProductsSync } from './jobs/handlers/products-sync.js';
+import { handleMetricsRollup } from './jobs/handlers/metrics-rollup.js';
+import { handleScoreRecompute } from './jobs/handlers/score-recompute.js';
 
 const env = loadEnv();
 
@@ -52,13 +57,18 @@ await app.register(
     apiScope.get('/ping', async (request) => ({ shop: request.shop?.shopDomain }));
     await apiScope.register(bundleRoutes, { db, apiVersion: env.SHOPIFY_API_VERSION });
     await apiScope.register(productRoutes, { apiVersion: env.SHOPIFY_API_VERSION });
+    await apiScope.register(alertRoutes, { db });
+    await apiScope.register(dashboardRoutes, { db });
   },
   { prefix: '/api' },
 );
 
 registerJobHandler('shop.uninstalled', handleShopUninstalled);
 registerJobHandler('compliance.process', handleCompliance);
-registerJobHandler('webhook.process', handleWebhookProcess);
+registerJobHandler('inventory.sync', handleInventorySync);
+registerJobHandler('products.sync', handleProductsSync);
+registerJobHandler('metrics.rollup', handleMetricsRollup);
+registerJobHandler('score.recompute', handleScoreRecompute);
 registerJobHandler(
   'discount.reconcile',
   createDiscountReconcileHandler(encryptionKey, env.SHOPIFY_API_VERSION),

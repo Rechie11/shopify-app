@@ -1,10 +1,11 @@
 import { ulid } from 'ulid';
-import { and, desc, eq, isNull, lt } from 'drizzle-orm';
+import { and, desc, eq, inArray, isNull, lt, sql } from 'drizzle-orm';
 import type { DbOrTx } from '@ember-and-ash/db/client';
 import {
   bundleItems,
   bundlePriceTiers,
   bundleRules,
+  bundleScores,
   bundles,
   type bundlePricingMode,
   type bundleStatus,
@@ -85,6 +86,57 @@ export async function findBundleByPublicId(
     ),
     with: { items: true, tiers: true, rules: true },
   });
+}
+
+export async function findBundleWithDetailsById(
+  db: DbOrTx,
+  shopId: number,
+  bundleId: number,
+): Promise<BundleWithDetails | undefined> {
+  return db.query.bundles.findFirst({
+    where: and(eq(bundles.shopId, shopId), eq(bundles.id, bundleId), isNull(bundles.deletedAt)),
+    with: { items: true, tiers: true, rules: true },
+  });
+}
+
+export async function listActiveBundleIds(db: DbOrTx, shopId: number): Promise<number[]> {
+  const rows = await db
+    .select({ id: bundles.id })
+    .from(bundles)
+    .where(
+      and(eq(bundles.shopId, shopId), eq(bundles.status, 'active'), isNull(bundles.deletedAt)),
+    );
+  return rows.map((r) => r.id);
+}
+
+// The overlap term in the balance score (SCHEMA.md §4.5) penalises a
+// merchant for publishing several near-identical flights. Computed
+// in-memory across the shop's other active bundles - fine at the scale
+// a MySQL-first architecture already commits to (see ARCHITECTURE.md §14).
+export async function getMaxItemOverlapWithOtherActiveBundles(
+  db: DbOrTx,
+  shopId: number,
+  bundleId: number,
+  variantGids: string[],
+): Promise<number> {
+  const otherActiveIds = (await listActiveBundleIds(db, shopId)).filter((id) => id !== bundleId);
+  if (otherActiveIds.length === 0) {
+    return 0;
+  }
+
+  const otherItems = await db
+    .select({ bundleId: bundleItems.bundleId, variantGid: bundleItems.variantGid })
+    .from(bundleItems)
+    .where(inArray(bundleItems.bundleId, otherActiveIds));
+
+  const variantSet = new Set(variantGids);
+  const overlapByBundle = new Map<number, number>();
+  for (const item of otherItems) {
+    if (variantSet.has(item.variantGid)) {
+      overlapByBundle.set(item.bundleId, (overlapByBundle.get(item.bundleId) ?? 0) + 1);
+    }
+  }
+  return Math.max(0, ...overlapByBundle.values());
 }
 
 export interface ListBundlesOptions {
@@ -219,5 +271,148 @@ export async function findBundleByIdForShop(
 ): Promise<Bundle | undefined> {
   return db.query.bundles.findFirst({
     where: and(eq(bundles.id, bundleId), eq(bundles.shopId, shopId), isNull(bundles.deletedAt)),
+  });
+}
+
+// inventory_levels/update webhooks carry inventory_item_id, not a variant
+// id - this is the resolution step. A variant has exactly one inventory
+// item, so every row returned shares the same variant_gid; there can be
+// several rows because the same variant may appear in more than one
+// active bundle.
+export async function findBundleItemsByInventoryItemGid(
+  db: DbOrTx,
+  shopId: number,
+  inventoryItemGid: string,
+): Promise<Array<{ bundleId: number; variantGid: string }>> {
+  const rows = await db
+    .select({ bundleId: bundleItems.bundleId, variantGid: bundleItems.variantGid })
+    .from(bundleItems)
+    .innerJoin(bundles, eq(bundleItems.bundleId, bundles.id))
+    .where(
+      and(
+        eq(bundleItems.inventoryItemGid, inventoryItemGid),
+        eq(bundles.shopId, shopId),
+        eq(bundles.status, 'active'),
+        isNull(bundles.deletedAt),
+      ),
+    );
+  return rows;
+}
+
+export async function findBundleItemsByVariantGid(
+  db: DbOrTx,
+  shopId: number,
+  variantGid: string,
+): Promise<Array<{ bundleId: number; itemId: number }>> {
+  const rows = await db
+    .select({ bundleId: bundleItems.bundleId, itemId: bundleItems.id })
+    .from(bundleItems)
+    .innerJoin(bundles, eq(bundleItems.bundleId, bundles.id))
+    .where(
+      and(
+        eq(bundleItems.variantGid, variantGid),
+        eq(bundles.shopId, shopId),
+        eq(bundles.status, 'active'),
+        isNull(bundles.deletedAt),
+      ),
+    );
+  return rows.map((r) => ({ bundleId: r.bundleId, itemId: r.itemId }));
+}
+
+export async function findBundleItemsByProductGid(
+  db: DbOrTx,
+  shopId: number,
+  productGid: string,
+): Promise<Array<{ bundleId: number; bundleTitle: string }>> {
+  const rows = await db
+    .select({ bundleId: bundleItems.bundleId, bundleTitle: bundles.title })
+    .from(bundleItems)
+    .innerJoin(bundles, eq(bundleItems.bundleId, bundles.id))
+    .where(
+      and(
+        eq(bundleItems.productGid, productGid),
+        eq(bundles.shopId, shopId),
+        eq(bundles.status, 'active'),
+        isNull(bundles.deletedAt),
+      ),
+    );
+  // A bundle can include more than one variant of the deleted product.
+  const seen = new Map<number, string>();
+  for (const row of rows) {
+    seen.set(row.bundleId, row.bundleTitle);
+  }
+  return [...seen.entries()].map(([bundleId, bundleTitle]) => ({ bundleId, bundleTitle }));
+}
+
+export async function refreshBundleItemCache(
+  db: DbOrTx,
+  itemId: number,
+  patch: { productTitleCache?: string; variantTitleCache?: string; unitPriceCents?: number },
+): Promise<void> {
+  await db.update(bundleItems).set(patch).where(eq(bundleItems.id, itemId));
+}
+
+export interface BundleCounts {
+  total: number;
+  draft: number;
+  publishing: number;
+  active: number;
+  paused: number;
+  archived: number;
+}
+
+export async function getBundleCounts(db: DbOrTx, shopId: number): Promise<BundleCounts> {
+  const rows = await db
+    .select({ status: bundles.status, count: sql<number>`count(*)` })
+    .from(bundles)
+    .where(and(eq(bundles.shopId, shopId), isNull(bundles.deletedAt)))
+    .groupBy(bundles.status);
+
+  const counts: BundleCounts = {
+    total: 0,
+    draft: 0,
+    publishing: 0,
+    active: 0,
+    paused: 0,
+    archived: 0,
+  };
+  for (const row of rows) {
+    counts[row.status] = Number(row.count);
+    counts.total += Number(row.count);
+  }
+  return counts;
+}
+
+export interface ScoreDistribution {
+  healthy: number;
+  watch: number;
+  at_risk: number;
+}
+
+// Reads through bundles.current_score_id - the denormalised pointer that
+// makes this a single join instead of a correlated "latest score per
+// bundle" subquery. See SCHEMA.md §4.7.
+export async function getScoreDistribution(db: DbOrTx, shopId: number): Promise<ScoreDistribution> {
+  const rows = await db
+    .select({ band: bundleScores.band, count: sql<number>`count(*)` })
+    .from(bundles)
+    .innerJoin(bundleScores, eq(bundles.currentScoreId, bundleScores.id))
+    .where(and(eq(bundles.shopId, shopId), eq(bundles.status, 'active'), isNull(bundles.deletedAt)))
+    .groupBy(bundleScores.band);
+
+  const distribution: ScoreDistribution = { healthy: 0, watch: 0, at_risk: 0 };
+  for (const row of rows) {
+    distribution[row.band] = Number(row.count);
+  }
+  return distribution;
+}
+
+export async function findBundleByHandle(
+  db: DbOrTx,
+  shopId: number,
+  handle: string,
+): Promise<Bundle | undefined> {
+  return db.query.bundles.findFirst({
+    where: and(eq(bundles.shopId, shopId), eq(bundles.handle, handle), isNull(bundles.deletedAt)),
   });
 }

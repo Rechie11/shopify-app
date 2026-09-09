@@ -11,13 +11,19 @@ import {
   updateBundle,
 } from '../lib/api.js';
 import { type PickedVariant, ProductPicker } from '../components/ProductPicker.js';
+import { HealthCard } from '../components/HealthCard.js';
+
+const FLAVOR_PROFILES = ['smoky', 'fruity', 'citrus', 'umami', 'herbal', 'sweet-heat'] as const;
 
 interface DraftItem {
   productGid: string;
   variantGid: string;
+  inventoryItemGid: string;
   productTitleCache: string;
   variantTitleCache: string;
   unitPriceCents: number;
+  heatLevel: number | null;
+  flavorProfile: string | null;
 }
 
 interface DraftTier {
@@ -53,9 +59,12 @@ export function BundleEditor() {
           b.items.map((i) => ({
             productGid: i.productGid,
             variantGid: i.variantGid,
+            inventoryItemGid: i.inventoryItemGid ?? '',
             productTitleCache: i.productTitleCache ?? '',
             variantTitleCache: i.variantTitleCache ?? '',
             unitPriceCents: i.unitPriceCents ?? 0,
+            heatLevel: i.heatLevel,
+            flavorProfile: i.flavorProfile,
           })),
         );
         setTiers(b.tiers.map((t) => ({ minQuantity: t.minQuantity, discountBps: t.discountBps })));
@@ -109,7 +118,13 @@ export function BundleEditor() {
     setSaving(true);
     try {
       await saveComposition(bundle.publicId, {
-        items: items.map((item, position) => ({ ...item, position, isRequired: true })),
+        items: items.map((item, position) => ({
+          ...item,
+          position,
+          isRequired: true,
+          heatLevel: item.heatLevel ?? undefined,
+          flavorProfile: item.flavorProfile ?? undefined,
+        })),
         tiers,
       });
     } catch (err) {
@@ -164,11 +179,15 @@ export function BundleEditor() {
 
   function addItem(variant: PickedVariant) {
     if (items.some((i) => i.variantGid === variant.variantGid)) return;
-    setItems([...items, variant]);
+    setItems([...items, { ...variant, heatLevel: null, flavorProfile: null }]);
   }
 
   function removeItem(variantGid: string) {
     setItems(items.filter((i) => i.variantGid !== variantGid));
+  }
+
+  function updateItem(variantGid: string, patch: Partial<DraftItem>) {
+    setItems(items.map((i) => (i.variantGid === variantGid ? { ...i, ...patch } : i)));
   }
 
   function addTier() {
@@ -260,6 +279,8 @@ export function BundleEditor() {
 
       {error && <div className="error-banner">{error}</div>}
 
+      {bundle.status === 'active' && <HealthCard publicId={bundle.publicId} />}
+
       <div className="card">
         <div className="field">
           <label htmlFor="edit-title">Title</label>
@@ -302,6 +323,36 @@ export function BundleEditor() {
                 : ''}
             </span>
             <span className="item-row__meta">${(item.unitPriceCents / 100).toFixed(2)}</span>
+            <select
+              aria-label="Heat level"
+              value={item.heatLevel ?? ''}
+              onChange={(e) =>
+                updateItem(item.variantGid, {
+                  heatLevel: e.target.value === '' ? null : Number(e.target.value),
+                })
+              }
+            >
+              <option value="">Heat: —</option>
+              {[0, 1, 2, 3, 4, 5].map((h) => (
+                <option key={h} value={h}>
+                  Heat: {h}
+                </option>
+              ))}
+            </select>
+            <select
+              aria-label="Flavor profile"
+              value={item.flavorProfile ?? ''}
+              onChange={(e) =>
+                updateItem(item.variantGid, { flavorProfile: e.target.value || null })
+              }
+            >
+              <option value="">Flavor: —</option>
+              {FLAVOR_PROFILES.map((f) => (
+                <option key={f} value={f}>
+                  {f}
+                </option>
+              ))}
+            </select>
             <button className="button" onClick={() => removeItem(item.variantGid)}>
               Remove
             </button>

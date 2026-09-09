@@ -1,5 +1,6 @@
 import { relations, sql } from 'drizzle-orm';
 import {
+  type AnyMySqlColumn,
   bigint,
   boolean,
   char,
@@ -16,6 +17,7 @@ import {
   varchar,
 } from 'drizzle-orm/mysql-core';
 import { shops } from './shops.js';
+import { bundleScores } from './scoring.js';
 
 export const bundleStatus = ['draft', 'publishing', 'active', 'paused', 'archived'] as const;
 export const bundlePricingMode = ['tiered_percent', 'fixed_price', 'per_item_percent'] as const;
@@ -61,6 +63,16 @@ export const bundles = mysqlTable(
 
     storefrontCollectionGid: varchar('storefront_collection_gid', { length: 255 }),
     discountGid: varchar('discount_gid', { length: 255 }),
+
+    // Denormalised pointer to the latest row in the append-only
+    // bundle_scores - without it the bundle list needs a correlated
+    // "latest score per bundle" subquery (greatest-n-per-group). Set
+    // inside the same transaction as the score insert; the nightly sweep
+    // reconciles any drift from a failed mid-transaction write. See
+    // SCHEMA.md §4.7.
+    currentScoreId: bigint('current_score_id', { mode: 'number', unsigned: true }).references(
+      (): AnyMySqlColumn => bundleScores.id,
+    ),
 
     startsAt: datetime('starts_at', { fsp: 3 }),
     endsAt: datetime('ends_at', { fsp: 3 }),
