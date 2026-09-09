@@ -1,15 +1,15 @@
 import { eq } from 'drizzle-orm';
 import { shops } from '@ember-and-ash/db';
-import type { Db } from '@ember-and-ash/db/client';
+import type { DbOrTx } from '@ember-and-ash/db/client';
 import type { EncryptedToken } from '../shopify/crypto.js';
 
 export type Shop = typeof shops.$inferSelect;
 
-export async function findShopByDomain(db: Db, shopDomain: string): Promise<Shop | undefined> {
+export async function findShopByDomain(db: DbOrTx, shopDomain: string): Promise<Shop | undefined> {
   return db.query.shops.findFirst({ where: eq(shops.shopDomain, shopDomain) });
 }
 
-export async function createShop(db: Db, shopDomain: string): Promise<Shop> {
+export async function createShop(db: DbOrTx, shopDomain: string): Promise<Shop> {
   const [result] = await db.insert(shops).values({ shopDomain }).$returningId();
   const created = await db.query.shops.findFirst({ where: eq(shops.id, result!.id) });
   if (!created) {
@@ -18,7 +18,7 @@ export async function createShop(db: Db, shopDomain: string): Promise<Shop> {
   return created;
 }
 
-export async function findOrCreateShopByDomain(db: Db, shopDomain: string): Promise<Shop> {
+export async function findOrCreateShopByDomain(db: DbOrTx, shopDomain: string): Promise<Shop> {
   const existing = await findShopByDomain(db, shopDomain);
   if (existing) {
     return existing;
@@ -27,7 +27,7 @@ export async function findOrCreateShopByDomain(db: Db, shopDomain: string): Prom
 }
 
 export async function saveShopAccessToken(
-  db: Db,
+  db: DbOrTx,
   shopId: number,
   token: EncryptedToken,
   scopes: string,

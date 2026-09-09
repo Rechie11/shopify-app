@@ -1,5 +1,5 @@
 import { sql } from 'drizzle-orm';
-import type { Db } from '@ember-and-ash/db/client';
+import type { DbOrTx } from '@ember-and-ash/db/client';
 import { jobs } from '@ember-and-ash/db';
 
 export interface EnqueueOptions {
@@ -18,7 +18,7 @@ export interface EnqueueOptions {
 // A burst of events for the same (shopId, type, dedupeKey) collapses into
 // one pending job via the generated pending_key column - the ON DUPLICATE
 // KEY UPDATE just pulls run_at earlier if a sooner occurrence arrives.
-export async function enqueue(db: Db, opts: EnqueueOptions): Promise<void> {
+export async function enqueue(db: DbOrTx, opts: EnqueueOptions): Promise<void> {
   const runAt = opts.runAt ?? new Date();
   await db
     .insert(jobs)

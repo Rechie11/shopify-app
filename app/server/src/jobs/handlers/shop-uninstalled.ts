@@ -21,7 +21,7 @@ export const handleShopUninstalled: JobHandler = async (db: Db, job) => {
       })
       .where(eq(shops.id, shopId));
 
-    await writeActivity(tx as unknown as Db, {
+    await writeActivity(tx, {
       shopId,
       actorType: 'webhook',
       actorLabel: 'app/uninstalled',

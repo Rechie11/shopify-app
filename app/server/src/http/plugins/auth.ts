@@ -1,6 +1,7 @@
 import fp from 'fastify-plugin';
-import type { FastifyInstance } from 'fastify';
+import type { FastifyInstance, FastifyRequest } from 'fastify';
 import type { Db } from '@ember-and-ash/db/client';
+import { AuthError } from '../../errors.js';
 import { decryptToken, encryptToken } from '../../shopify/crypto.js';
 import {
   TokenExchangeError,
@@ -24,6 +25,17 @@ declare module 'fastify' {
   interface FastifyRequest {
     shop?: ShopContext;
   }
+}
+
+// Routes registered under the /api scope run behind authPlugin's
+// preHandler, which either sets request.shop or has already replied - so
+// by the time a route body runs, shop is always present. This narrows the
+// type without an unchecked `!` at every call site.
+export function requireShopContext(request: FastifyRequest): ShopContext {
+  if (!request.shop) {
+    throw new AuthError('Request is missing shop context');
+  }
+  return request.shop;
 }
 
 export interface AuthPluginOptions {

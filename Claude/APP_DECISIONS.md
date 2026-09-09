@@ -1,7 +1,7 @@
 # APP_DECISIONS.md
 
 **Ember & Ash** — custom Shopify theme + **Bundle Studio** — embedded Shopify admin app
-Cherry Anne Dagunan · September 2026
+Rechie Dagunan · September 2026
 
 > This is the required submission document. It covers the store concept, the app idea, the key
 > architecture and schema decisions, the tradeoffs I accepted, and what I would build next.

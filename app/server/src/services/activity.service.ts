@@ -1,4 +1,4 @@
-import type { Db } from '@ember-and-ash/db/client';
+import type { DbOrTx } from '@ember-and-ash/db/client';
 import { activityLog } from '@ember-and-ash/db';
 
 export interface WriteActivityInput {
@@ -19,7 +19,7 @@ export interface WriteActivityInput {
 // written after commit is a log that loses entries exactly when you need
 // them. Pass the transaction handle when the caller is already inside
 // db.transaction(). See SCHEMA.md §3.11.
-export async function writeActivity(db: Db, input: WriteActivityInput): Promise<void> {
+export async function writeActivity(db: DbOrTx, input: WriteActivityInput): Promise<void> {
   await db.insert(activityLog).values({
     shopId: input.shopId,
     actorType: input.actorType,

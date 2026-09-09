@@ -1,4 +1,4 @@
-import type { Db } from '@ember-and-ash/db/client';
+import type { DbOrTx } from '@ember-and-ash/db/client';
 import { webhookEvents } from '@ember-and-ash/db';
 import { isMysqlErrorCode } from '../db/errors.js';
 
@@ -16,7 +16,7 @@ export interface RecordWebhookEventInput {
 // can short-circuit without treating a replay as a failure.
 // See ARCHITECTURE.md §6.3.
 export async function recordWebhookEvent(
-  db: Db,
+  db: DbOrTx,
   input: RecordWebhookEventInput,
 ): Promise<{ isNew: boolean }> {
   try {

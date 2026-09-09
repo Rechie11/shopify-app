@@ -1,17 +1,12 @@
+import { ShopifyApiError } from '../errors.js';
+
 export interface AdminClientOptions {
   shopDomain: string;
   accessToken: string;
   apiVersion: string;
 }
 
-export class ShopifyApiError extends Error {
-  constructor(
-    message: string,
-    public readonly graphqlErrors?: unknown,
-  ) {
-    super(message);
-  }
-}
+export { ShopifyApiError };
 
 interface ThrottleStatus {
   maximumAvailable: number;
