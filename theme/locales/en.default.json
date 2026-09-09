@@ -126,6 +126,27 @@
     },
     "featured_collection": {
       "view_all": "View all"
+    },
+    "flight_builder": {
+      "no_flight": "No flight is published yet - come back soon.",
+      "step_size": "How many bottles?",
+      "step_select": "Pick your bottles",
+      "step_review": "Review your flight",
+      "slots_label": "Your flight",
+      "rail_label": "Available sauces",
+      "review_label": "Flight review",
+      "heat_curve_label": "Heat curve across your selection",
+      "discount_note": "Flight discount applied at checkout.",
+      "proxy_unavailable": "Live pricing unavailable — totals confirm at checkout.",
+      "add_flight": "Add flight",
+      "remove_slot": "Remove from slot {{ slot }}",
+      "empty_slot": "Empty slot {{ slot }}",
+      "filled_slot": "Slot {{ slot }}: {{ title }}",
+      "swap_action": "Swap",
+      "sold_out": "Sold out",
+      "quantity_reached": "This flight is full",
+      "add_to_cart_error": "Couldn't add this flight to your cart — please try again.",
+      "added_to_cart": "Flight added to your cart."
     }
   }
 }

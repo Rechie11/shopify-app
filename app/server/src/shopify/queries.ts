@@ -87,3 +87,40 @@ export interface DiscountAutomaticDeactivateResult {
     userErrors: Array<{ field: string[] | null; message: string }>;
   };
 }
+
+export const SHOP_ID_QUERY = /* GraphQL */ `
+  {
+    shop {
+      id
+    }
+  }
+`;
+
+export interface ShopIdResult {
+  shop: { id: string };
+}
+
+// The flight-builder fallback path: a compact JSON snapshot of every
+// active bundle, written to a shop metafield on publish so the theme can
+// render from it on first paint with zero network dependency. See
+// ARCHITECTURE.md §9 and THEME_SPEC.md §4.7.
+export const METAFIELDS_SET_MUTATION = /* GraphQL */ `
+  mutation MetafieldsSet($metafields: [MetafieldsSetInput!]!) {
+    metafieldsSet(metafields: $metafields) {
+      metafields {
+        id
+      }
+      userErrors {
+        field
+        message
+      }
+    }
+  }
+`;
+
+export interface MetafieldsSetResult {
+  metafieldsSet: {
+    metafields: Array<{ id: string }>;
+    userErrors: Array<{ field: string[] | null; message: string }>;
+  };
+}

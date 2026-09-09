@@ -24,8 +24,25 @@ import {
 } from '../repositories/bundle.repository.js';
 import { enqueue, enqueueScoreRecomputeNow } from '../jobs/queue.js';
 import { writeActivity } from './activity.service.js';
+import { writeFlightSnapshot } from './flight-snapshot.service.js';
 
 type AdminClient = ReturnType<typeof createAdminClient>;
+
+// The metafield snapshot is a best-effort fallback mirror, not the source
+// of truth (the proxy is) - a failure here must never fail the publish,
+// pause, or composition save it's attached to. See ARCHITECTURE.md §9.
+async function writeFlightSnapshotBestEffort(
+  adminClient: AdminClient,
+  db: DbOrTx,
+  shopId: number,
+): Promise<void> {
+  try {
+    await writeFlightSnapshot(adminClient, db, shopId);
+  } catch {
+    // Swallowed deliberately - the live proxy path still works, and the
+    // snapshot will catch up on the next publish/pause/composition save.
+  }
+}
 
 export async function createDraftBundle(
   db: DbOrTx,
@@ -63,6 +80,7 @@ export interface SaveBundleCompositionInput {
 // The editor always saves the complete composition, not a diff - replace,
 // not merge.
 export async function saveBundleComposition(
+  adminClient: AdminClient,
   db: DbOrTx,
   shopId: number,
   publicId: string,
@@ -92,6 +110,7 @@ export async function saveBundleComposition(
     // active bundle's score should reflect its current composition
     // immediately, not wait for the next webhook or the nightly sweep.
     await enqueueScoreRecomputeNow(db, shopId, bundle.id);
+    await writeFlightSnapshotBestEffort(adminClient, db, shopId);
   }
 }
 
@@ -184,6 +203,7 @@ export async function attemptPublish(
   });
 
   await enqueueScoreRecomputeNow(db, shopId, bundle.id);
+  await writeFlightSnapshotBestEffort(adminClient, db, shopId);
 }
 
 // Publish is a transaction with an external side effect, ordered
@@ -253,6 +273,7 @@ export async function pauseBundle(
       after: { status: 'paused' },
     });
   });
+  await writeFlightSnapshotBestEffort(adminClient, db, shopId);
 }
 
 export async function deleteBundle(db: DbOrTx, shopId: number, publicId: string): Promise<void> {

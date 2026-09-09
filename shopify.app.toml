@@ -27,11 +27,14 @@ api_version = "2026-07"
   topics = ["app/uninstalled"]
   uri = "/webhooks/app"
 
-# orders/create, orders/cancelled, and the mandatory privacy_compliance
-# webhooks (customers/data_request, customers/redact, shop/redact) all carry
-# protected customer data and need that access approved in the Partner
-# Dashboard first (App setup -> API access -> Protected customer data) -
-# see ARCHITECTURE.md §6.3. Re-add on Day 1 once that's requested.
+  [[webhooks.subscriptions]]
+  topics = ["orders/create", "orders/cancelled"]
+  uri = "/webhooks/orders"
+
+# The mandatory privacy_compliance webhooks (customers/data_request,
+# customers/redact, shop/redact) carry protected customer data and are
+# registered separately by Shopify once "Protected customer data access"
+# is approved for that scope - see ARCHITECTURE.md §6.3.
 
 [app_proxy]
 url = "https://example.com/proxy"

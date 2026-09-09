@@ -8,8 +8,11 @@ import { bundleRoutes } from './http/routes/bundles.js';
 import { productRoutes } from './http/routes/products.js';
 import { alertRoutes } from './http/routes/alerts.js';
 import { dashboardRoutes } from './http/routes/dashboard.js';
+import { proxyRoutes } from './http/routes/proxy.js';
 import authPlugin from './http/plugins/auth.js';
+import appProxyPlugin from './http/plugins/app-proxy.js';
 import errorHandlerPlugin from './http/plugins/error-handler.js';
+import rateLimitPlugin from '@fastify/rate-limit';
 import { registerJobHandler, startWorkerLoop } from './jobs/worker.js';
 import { handleShopUninstalled } from './jobs/handlers/shop-uninstalled.js';
 import { handleCompliance } from './jobs/handlers/compliance.js';
@@ -63,6 +66,15 @@ await app.register(
   { prefix: '/api' },
 );
 
+// The storefront-facing scope: app-proxy signature verified, not
+// session-token verified, and rate limited since it's reachable by any
+// anonymous shopper. See ARCHITECTURE.md §6.2 and §6.4.
+await app.register(async (proxyScope) => {
+  await proxyScope.register(rateLimitPlugin, { max: 120, timeWindow: '1 minute' });
+  await proxyScope.register(appProxyPlugin, { db, clientSecret: env.SHOPIFY_API_SECRET });
+  await proxyScope.register(proxyRoutes, { db });
+});
+
 registerJobHandler('shop.uninstalled', handleShopUninstalled);
 registerJobHandler('compliance.process', handleCompliance);
 registerJobHandler('inventory.sync', handleInventorySync);
@@ -80,7 +92,10 @@ app.addHook('onClose', async () => {
 });
 
 try {
-  await app.listen({ port: env.PORT, host: '0.0.0.0' });
+  // '::' binds dual-stack (IPv4 + IPv6) so 'localhost' resolves whether the
+  // OS prefers ::1 or 127.0.0.1 - Windows commonly tries ::1 first, which
+  // was refusing connections when this only listened on 0.0.0.0.
+  await app.listen({ port: env.PORT, host: '::' });
 } catch (err) {
   app.log.error(err);
   process.exit(1);

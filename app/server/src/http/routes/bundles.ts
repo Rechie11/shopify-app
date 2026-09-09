@@ -135,7 +135,12 @@ export async function bundleRoutes(app: FastifyInstance, opts: BundleRoutesOptio
     const shop = requireShopContext(request);
     const { publicId } = publicIdParamSchema.parse(request.params);
     const input = compositionSchema.parse(request.body);
-    await saveBundleComposition(opts.db, shop.shopId, publicId, input);
+    const adminClient = createAdminClient({
+      shopDomain: shop.shopDomain,
+      accessToken: shop.accessToken,
+      apiVersion: opts.apiVersion,
+    });
+    await saveBundleComposition(adminClient, opts.db, shop.shopId, publicId, input);
     return { ok: true };
   });
 

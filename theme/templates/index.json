@@ -18,6 +18,9 @@
       },
       "block_order": ["tier-0", "tier-1", "tier-2", "tier-3", "tier-4", "tier-5"]
     },
+    "flight_builder": {
+      "type": "flight-builder"
+    },
     "batch_story": {
       "type": "batch-story",
       "blocks": {
@@ -47,5 +50,5 @@
       }
     }
   },
-  "order": ["hero", "heat_rail", "batch_story", "flavor_matrix", "featured_collection"]
+  "order": ["hero", "heat_rail", "flight_builder", "batch_story", "flavor_matrix", "featured_collection"]
 }

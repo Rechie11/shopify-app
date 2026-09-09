@@ -1,0 +1,166 @@
+{%- comment -%}
+  The Flight Builder - a guided flow to assemble a tasting flight, backed
+  by Bundle Studio's published bundles. Renders from the shop's
+  `custom.flight_snapshot` metafield (written by the app on publish) so
+  the skeleton is fully readable before any JavaScript executes; the
+  custom element then calls the app proxy for live pricing/validation.
+  See THEME_SPEC.md §4.
+{%- endcomment -%}
+{%- liquid
+  assign snapshot = shop.metafields.custom.flight_snapshot.value
+  assign target_handle = section.settings.bundle_handle
+  assign flight_bundle = blank
+
+  if snapshot
+    for candidate in snapshot.bundles
+      if target_handle != blank and candidate.handle == target_handle
+        assign flight_bundle = candidate
+      elsif target_handle == blank and flight_bundle == blank
+        assign flight_bundle = candidate
+      endif
+    endfor
+  endif
+-%}
+
+<section id="flight-builder" class="section" data-section-id="{{ section.id }}">
+  <div class="container">
+    <h2>{{ section.settings.heading }}</h2>
+    {%- if section.settings.subheading != blank -%}
+      <p class="muted">{{ section.settings.subheading }}</p>
+    {%- endif -%}
+
+    {%- if flight_bundle == blank -%}
+      <p class="empty-state muted">{{ 'sections.flight_builder.no_flight' | t }}</p>
+    {%- else -%}
+      <flight-builder
+        data-proxy-url="/apps/flights"
+        data-bundle-handle="{{ flight_bundle.handle }}"
+        data-min-items="{{ flight_bundle.minItems }}"
+        data-max-items="{{ flight_bundle.maxItems }}"
+      >
+        <script type="application/json" data-flight-snapshot>{{ flight_bundle | json }}</script>
+
+        <div class="flight-builder__skeleton" data-flight-skeleton>
+          <div class="flight-builder__step" data-step="size">
+            <h3>{{ 'sections.flight_builder.step_size' | t }}</h3>
+            <div class="flight-builder__size-options" role="radiogroup" aria-label="{{ 'sections.flight_builder.step_size' | t }}">
+              {%- for size in (flight_bundle.minItems..flight_bundle.maxItems) -%}
+                <button type="button" class="button flight-builder__size-option" role="radio" aria-checked="false" data-size-option="{{ size }}">
+                  {{ size }}
+                </button>
+              {%- endfor -%}
+            </div>
+          </div>
+
+          <div class="flight-builder__body" data-flight-body hidden>
+            <div class="flight-builder__rail-column">
+              <h3>{{ 'sections.flight_builder.step_select' | t }}</h3>
+              <div class="flight-builder__slots" role="list" data-flight-slots aria-label="{{ 'sections.flight_builder.slots_label' | t }}"></div>
+
+              <div
+                class="heat-rail flight-builder__sauce-rail"
+                role="listbox"
+                aria-label="{{ 'sections.flight_builder.rail_label' | t }}"
+                data-sauce-rail
+              >
+                {%- for item in flight_bundle.items -%}
+                  <button
+                    type="button"
+                    class="heat-rail__item flight-builder__sauce"
+                    role="option"
+                    aria-selected="false"
+                    data-variant-gid="{{ item.variantGid }}"
+                    data-product-title="{{ item.productTitle | escape }}"
+                    data-heat-level="{{ item.heatLevel }}"
+                    data-flavor-profile="{{ item.flavorProfile }}"
+                    data-unit-price-cents="{{ item.unitPriceCents }}"
+                    data-image-url="{{ item.imageUrl }}"
+                    data-available="{{ item.available }}"
+                  >
+                    <span class="heat-rail__flame" data-heat="{{ item.heatLevel }}" style="background: var(--c-heat-{{ item.heatLevel | default: 0 }});"></span>
+                    <span class="heat-rail__label">{{ item.productTitle }}</span>
+                  </button>
+                {%- endfor -%}
+              </div>
+            </div>
+
+            <aside class="flight-builder__review" data-flight-review aria-label="{{ 'sections.flight_builder.review_label' | t }}">
+              <h3>{{ 'sections.flight_builder.step_review' | t }}</h3>
+
+              <svg class="flight-builder__heat-curve" data-heat-curve viewBox="0 0 200 60" preserveAspectRatio="none" role="img" aria-label="{{ 'sections.flight_builder.heat_curve_label' | t }}">
+                <polyline data-heat-curve-line fill="none" stroke="var(--c-ember)" stroke-width="3" points=""></polyline>
+              </svg>
+
+              <div class="flight-builder__balance-meter" data-balance-meter aria-hidden="true">
+                <span class="flight-builder__balance-dot" data-balance-dot="heat"></span>
+                <span class="flight-builder__balance-dot" data-balance-dot="flavor"></span>
+                <span class="flight-builder__balance-dot" data-balance-dot="duplication"></span>
+                <span class="flight-builder__balance-dot" data-balance-dot="completeness"></span>
+              </div>
+
+              <p class="flight-builder__coaching" data-flight-coaching aria-hidden="true"></p>
+
+              <div class="flight-builder__price" data-flight-price>
+                <span class="flight-builder__price-total" data-price-total>{{ 0 | money }}</span>
+                <span class="flight-builder__price-savings" data-price-savings hidden></span>
+              </div>
+              <p class="muted flight-builder__nudge" data-tier-nudge hidden></p>
+              <p class="muted">{{ 'sections.flight_builder.discount_note' | t }}</p>
+              <p class="flight-builder__proxy-note muted" data-proxy-fallback-note hidden>
+                {{ 'sections.flight_builder.proxy_unavailable' | t }}
+              </p>
+
+              <button type="button" class="button button--primary button--full" data-add-flight disabled>
+                {{ 'sections.flight_builder.add_flight' | t }}
+              </button>
+              <p class="flight-builder__error" data-flight-error role="alert" hidden></p>
+            </aside>
+          </div>
+        </div>
+      </flight-builder>
+
+      <noscript>
+        <div class="grid grid--3">
+          {%- for item in flight_bundle.items -%}
+            <div class="card">
+              <p><strong>{{ item.productTitle }}</strong></p>
+              {%- if item.variantTitle != 'Default Title' -%}<p class="muted">{{ item.variantTitle }}</p>{%- endif -%}
+              <p>{{ item.unitPriceCents | money }}</p>
+            </div>
+          {%- endfor -%}
+        </div>
+      </noscript>
+    {%- endif -%}
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "t:sections.flight_builder.name",
+  "settings": [
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "t:sections.flight_builder.heading",
+      "default": "Build a flight"
+    },
+    {
+      "type": "textarea",
+      "id": "subheading",
+      "label": "t:sections.flight_builder.subheading",
+      "default": "Pick your bottles. We'll tell you if it's any good."
+    },
+    {
+      "type": "text",
+      "id": "bundle_handle",
+      "label": "t:sections.flight_builder.bundle_handle",
+      "info": "t:sections.flight_builder.bundle_handle_info"
+    }
+  ],
+  "presets": [
+    {
+      "name": "t:sections.flight_builder.name"
+    }
+  ]
+}
+{% endschema %}

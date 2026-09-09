@@ -220,7 +220,7 @@ p {
 .button--primary {
   background: var(--c-ember);
   border-color: var(--c-ember);
-  color: var(--c-ash);
+  color: var(--c-char);
 }
 
 .button--primary:hover {
@@ -410,7 +410,7 @@ p {
   padding: 0 3px;
   border-radius: 999px;
   background: var(--c-ember);
-  color: var(--c-ash);
+  color: var(--c-char);
   font-size: 10px;
   font-weight: 700;
   display: flex;
@@ -779,6 +779,24 @@ p {
   z-index: 1;
 }
 
+/* Fixed scrim (independent of the merchant-configurable overlay above) that
+   guarantees text contrast for the content block, which always sits at the
+   bottom of the hero regardless of photo brightness. */
+.ember-hero__media::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  background: linear-gradient(
+    to top,
+    rgb(23 19 15 / 0.85) 0%,
+    rgb(23 19 15 / 0.85) 45%,
+    rgb(23 19 15 / 0.15) 75%,
+    rgb(23 19 15 / 0) 100%
+  );
+  pointer-events: none;
+}
+
 .ember-hero__content {
   position: relative;
   z-index: 2;
@@ -986,9 +1004,157 @@ p {
 .muted {
   color: var(--c-smoke);
 }
+.scheme-char .muted {
+  color: var(--c-ash-deep);
+}
 .text-center {
   text-align: center;
 }
 .mt-0 {
   margin-top: 0;
+}
+
+/* ---------- Flight builder ---------- */
+flight-builder {
+  display: block;
+}
+
+.flight-builder__step {
+  margin-bottom: var(--s-6);
+}
+
+.flight-builder__size-options {
+  display: flex;
+  gap: var(--s-2);
+}
+
+.flight-builder__size-option {
+  min-width: 56px;
+}
+
+.flight-builder__size-option[aria-checked='true'] {
+  background: var(--c-char);
+  color: var(--c-ash);
+}
+
+.flight-builder__body {
+  display: grid;
+  gap: var(--s-8);
+  align-items: start;
+}
+
+@media (min-width: 900px) {
+  .flight-builder__body {
+    grid-template-columns: 1fr 360px;
+  }
+
+  .flight-builder__review {
+    position: sticky;
+    top: calc(var(--s-16) + 1px);
+  }
+}
+
+.flight-builder__slots {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-2);
+  margin-bottom: var(--s-4);
+}
+
+.flight-builder__slot {
+  display: flex;
+  align-items: center;
+  gap: var(--s-2);
+  min-width: 44px;
+  min-height: 44px;
+  padding: var(--s-2) var(--s-3);
+  border: 2px dashed var(--c-smoke);
+  border-radius: var(--radius);
+  background: transparent;
+  cursor: default;
+}
+
+.flight-builder__slot--filled {
+  border-style: solid;
+  border-color: var(--c-char);
+  background: var(--c-ash-deep);
+  cursor: pointer;
+}
+
+.flight-builder__slot--sold-out {
+  border-color: var(--c-heat-5);
+  background: rgb(122 20 16 / 0.08);
+  flex-wrap: wrap;
+}
+
+.flight-builder__sauce-rail {
+  margin-top: var(--s-4);
+}
+
+.flight-builder__sauce[data-available='false'] {
+  opacity: 0.4;
+}
+
+.flight-builder__review {
+  background: var(--c-ash-deep);
+  border-radius: var(--radius);
+  padding: var(--s-6);
+}
+
+.flight-builder__heat-curve {
+  width: 100%;
+  height: 60px;
+  margin-bottom: var(--s-4);
+}
+
+.flight-builder__balance-meter {
+  display: flex;
+  gap: var(--s-2);
+  margin-bottom: var(--s-4);
+}
+
+.flight-builder__balance-dot {
+  --fill: 0;
+  position: relative;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: conic-gradient(var(--c-ember) calc(var(--fill) * 1%), var(--c-ash) 0);
+}
+
+.flight-builder__coaching {
+  min-height: 1.5em;
+  font-size: var(--step--1);
+  display: flex;
+  align-items: center;
+  gap: var(--s-2);
+  flex-wrap: wrap;
+}
+
+.flight-builder__price {
+  display: flex;
+  align-items: baseline;
+  gap: var(--s-2);
+  font-size: var(--step-1);
+  font-weight: 700;
+  margin: var(--s-4) 0 var(--s-2);
+}
+
+.flight-builder__price-total::before {
+  content: '$';
+}
+
+.flight-builder__price-savings {
+  font-size: var(--step--1);
+  font-weight: 600;
+  color: var(--c-lime);
+  background: var(--c-char);
+  padding: 2px 6px;
+  border-radius: var(--radius);
+}
+
+.flight-builder__error {
+  color: var(--c-heat-5);
+  font-size: var(--step--1);
+  margin-top: var(--s-2);
 }

@@ -416,3 +416,15 @@ export async function findBundleByHandle(
     where: and(eq(bundles.shopId, shopId), eq(bundles.handle, handle), isNull(bundles.deletedAt)),
   });
 }
+
+// The Flight Builder's data source, both directly (GET /apps/flights/bundles)
+// and via the metafield snapshot written on publish. See ARCHITECTURE.md §9.
+export async function listActiveBundlesWithDetails(
+  db: DbOrTx,
+  shopId: number,
+): Promise<BundleWithDetails[]> {
+  return db.query.bundles.findMany({
+    where: and(eq(bundles.shopId, shopId), eq(bundles.status, 'active'), isNull(bundles.deletedAt)),
+    with: { items: true, tiers: true, rules: true },
+  });
+}

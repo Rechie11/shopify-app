@@ -16,6 +16,13 @@
         }
       }
     },
+    "flight_builder": {
+      "name": "Flight Builder",
+      "heading": "Heading",
+      "subheading": "Subheading",
+      "bundle_handle": "Bundle handle",
+      "bundle_handle_info": "Leave blank to use the first active flight from Bundle Studio."
+    },
     "ember_hero": {
       "name": "Ember hero",
       "image": "Background image",

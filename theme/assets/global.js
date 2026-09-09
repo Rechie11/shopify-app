@@ -1,13 +1,21 @@
 // Ember & Ash - global behaviour: nav, gallery lightbox, sticky add-to-cart,
 // aria-live announcements, and lazy-loading the heat rail when present.
 
+// A single debounced aria-live region for the whole page - three
+// competing live regions is worse than none. 300ms debounce means rapid
+// calls (e.g. every keystroke while dragging a slot) collapse into one
+// announcement. See THEME_SPEC.md §8.
+let announceTimer;
 function announce(message) {
   const region = document.getElementById('AnnounceRegion');
   if (!region) return;
-  region.textContent = '';
-  window.setTimeout(() => {
-    region.textContent = message;
-  }, 50);
+  clearTimeout(announceTimer);
+  announceTimer = window.setTimeout(() => {
+    region.textContent = '';
+    window.setTimeout(() => {
+      region.textContent = message;
+    }, 50);
+  }, 300);
 }
 window.EmberAsh = { announce };
 
@@ -83,6 +91,18 @@ function initStickyAddToCart() {
   });
 }
 
+function initAddToFlightCta() {
+  const link = document.querySelector('[data-add-to-flight]');
+  if (!link) return;
+  link.addEventListener('click', () => {
+    const variantId = link.getAttribute('data-variant-id');
+    if (!variantId) return;
+    const url = new URL(link.href, window.location.origin);
+    url.searchParams.set('flight_preseed', variantId);
+    link.href = url.toString();
+  });
+}
+
 function initProductVariantSelect() {
   const form = document.getElementById('ProductForm');
   if (!form) return;
@@ -107,10 +127,39 @@ async function initHeatRail() {
   module.initHeatRail(rail);
 }
 
+// The Flight Builder's ~250-line custom element is real weight - it loads
+// only once its section scrolls into view, not on every page load that
+// happens to include it. See THEME_SPEC.md §4.8.
+function initFlightBuilder() {
+  const el = document.querySelector('flight-builder');
+  if (!el) return;
+
+  let loaded = false;
+  const load = () => {
+    if (loaded) return;
+    loaded = true;
+    import(window.EmberAshAssets.flightBuilder);
+  };
+
+  const observer = new IntersectionObserver(
+    (entries) => {
+      if (entries.some((e) => e.isIntersecting)) {
+        load();
+        observer.disconnect();
+      }
+    },
+    { rootMargin: '200px' },
+  );
+  observer.observe(el);
+  el.addEventListener('focusin', load, { once: true });
+}
+
 document.addEventListener('DOMContentLoaded', () => {
   initNavToggle();
   initGallery();
   initStickyAddToCart();
   initProductVariantSelect();
+  initAddToFlightCta();
+  initFlightBuilder();
   void initHeatRail();
 });

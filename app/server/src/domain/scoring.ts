@@ -155,14 +155,20 @@ export interface BalanceInput {
   maxOverlapWithOtherActiveBundle: number;
 }
 
-// Ties the app back to the storefront: the same computeBalanceScore is
-// called by the scoring job and by /proxy/validate. One definition of
-// "balanced", two surfaces. Duplication penalises publishing several
-// near-identical flights. See SCHEMA.md §4.5.
-export function computeBalanceScore(input: BalanceInput): number {
+export interface BalanceComponents {
+  heatSpread: number; // 0-1
+  flavorDiversity: number; // 0-1
+  duplication: number; // 0-1, 1 = no overlap with another active bundle
+}
+
+// The three sub-metrics behind the balance score, extracted so the Flight
+// Builder's balance meter (four dots: heat spread, flavour variety,
+// duplication, completeness) can render them individually instead of only
+// the rolled-up number. See SCHEMA.md §4.5.
+export function computeBalanceComponents(input: BalanceInput): BalanceComponents {
   const itemCount = input.items.length;
   if (itemCount === 0) {
-    return 0;
+    return { heatSpread: 0, flavorDiversity: 0, duplication: 0 };
   }
 
   const heats = input.items
@@ -177,11 +183,23 @@ export function computeBalanceScore(input: BalanceInput): number {
   ).size;
   // Saturates at 4: a flight of 6 with 5 distinct flavours is exactly as
   // diverse, for scoring purposes, as one of 4 with 4 distinct flavours.
-  const flavorDiv = Math.min(distinctFlavors / Math.min(itemCount, 4), 1);
+  const flavorDiversity = Math.min(distinctFlavors / Math.min(itemCount, 4), 1);
 
   const duplication = clamp01(1 - input.maxOverlapWithOtherActiveBundle / itemCount);
 
-  return round2(clamp01(0.4 * heatSpread + 0.4 * flavorDiv + 0.2 * duplication) * 100);
+  return { heatSpread, flavorDiversity, duplication };
+}
+
+// Ties the app back to the storefront: the same computeBalanceScore is
+// called by the scoring job and by /proxy/validate. One definition of
+// "balanced", two surfaces. Duplication penalises publishing several
+// near-identical flights. See SCHEMA.md §4.5.
+export function computeBalanceScore(input: BalanceInput): number {
+  if (input.items.length === 0) {
+    return 0;
+  }
+  const { heatSpread, flavorDiversity, duplication } = computeBalanceComponents(input);
+  return round2(clamp01(0.4 * heatSpread + 0.4 * flavorDiversity + 0.2 * duplication) * 100);
 }
 
 // ---- 4.1 / 4.6 Composite, band -------------------------------------------

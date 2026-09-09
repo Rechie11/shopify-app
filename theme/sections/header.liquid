@@ -23,7 +23,7 @@
       <a href="{{ routes.search_url }}" class="header-icon-link" aria-label="{{ 'general.search' | t }}">
         {% render 'icon', name: 'search' %}
       </a>
-      <a href="{{ routes.cart_url }}" class="header-icon-link" aria-label="{{ 'general.cart' | t }}">
+      <a href="{{ routes.cart_url }}" class="header-icon-link" aria-label="{{ 'general.cart' | t }}{% if cart.item_count > 0 %}, {{ cart.item_count }}{% endif %}">
         {% render 'icon', name: 'cart' %}
         {%- if cart.item_count > 0 -%}
           <span class="cart-count" data-cart-count>{{ cart.item_count }}</span>

@@ -74,7 +74,7 @@
       {%- endfor -%}
 
       {%- if heat_filter -%}
-        <button type="button" class="heat-rail__item" data-heat-tier-clear {% unless heat_filter.active_values.size > 0 %}hidden{% endunless %}>
+        <button type="button" class="heat-rail__item" role="option" aria-selected="false" data-heat-tier-clear {% unless heat_filter.active_values.size > 0 %}hidden{% endunless %}>
           <span class="heat-rail__label">{{ 'sections.heat_index_rail.clear' | t }}</span>
         </button>
       {%- endif -%}

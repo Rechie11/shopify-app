@@ -9,6 +9,10 @@ export async function findShopByDomain(db: DbOrTx, shopDomain: string): Promise<
   return db.query.shops.findFirst({ where: eq(shops.shopDomain, shopDomain) });
 }
 
+export async function findShopById(db: DbOrTx, shopId: number): Promise<Shop | undefined> {
+  return db.query.shops.findFirst({ where: eq(shops.id, shopId) });
+}
+
 export async function createShop(db: DbOrTx, shopDomain: string): Promise<Shop> {
   const [result] = await db.insert(shops).values({ shopDomain }).$returningId();
   const created = await db.query.shops.findFirst({ where: eq(shops.id, result!.id) });
