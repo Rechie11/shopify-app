@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="{{ request.locale.iso_code }}">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>
+      {{ page_title }}{% if current_tags %} &ndash; {{ 'general.tags' | t: tags: current_tags | join: ', ' }}{% endif %}{% if current_page != 1 %} &ndash; {{ 'general.page' | t: page: current_page }}{% endif %}{% unless page_title contains shop.name %} &ndash; {{ shop.name }}{% endunless %}
+    </title>
+
+    {%- render 'meta-tags' -%}
+
+    <link rel="preconnect" href="https://cdn.shopify.com" crossorigin>
+    <link rel="icon" href="{{ settings.favicon | image_url: width: 32 }}" type="image/png">
+
+    {{ content_for_header }}
+
+    {%- render 'css-variables' -%}
+    {{ 'base.css' | asset_url | stylesheet_tag }}
+
+    <script>
+      window.EmberAshAssets = {
+        heatRail: {{ 'heat-rail.js' | asset_url | json }}
+      };
+    </script>
+    <script src="{{ 'global.js' | asset_url }}" type="module" defer></script>
+    {%- if template.name == 'cart' -%}
+      <script src="{{ 'cart.js' | asset_url }}" type="module" defer></script>
+    {%- endif -%}
+  </head>
+  <body class="template-{{ template.name }}">
+    <a class="skip-link" href="#MainContent">{{ 'general.skip_to_content' | t }}</a>
+
+    {%- section 'header' -%}
+
+    <main id="MainContent" role="main">
+      {{ content_for_layout }}
+    </main>
+
+    {%- section 'footer' -%}
+
+    <div aria-live="polite" class="visually-hidden" id="AnnounceRegion"></div>
+  </body>
+</html>

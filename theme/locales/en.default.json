@@ -1,0 +1,131 @@
+{
+  "general": {
+    "skip_to_content": "Skip to content",
+    "menu": "Menu",
+    "search": "Search",
+    "search_placeholder": "Search sauces",
+    "cart": "Cart",
+    "close": "Close",
+    "page": "Page {{ page }}",
+    "tags": "Tagged \"{{ tags }}\"",
+    "primary_navigation": "Primary navigation",
+    "pagination": {
+      "label": "Pagination",
+      "previous": "Previous",
+      "next": "Next"
+    },
+    "footer": {
+      "made_in": "Fire-roasted in small batches."
+    }
+  },
+  "password_page": {
+    "tagline": "Small-batch hot sauce, numbered and fire-roasted. The shop opens soon.",
+    "password_label": "Password",
+    "enter": "Enter",
+    "wrong_password": "Wrong password. Try again."
+  },
+  "list_collections": {
+    "general": {
+      "title": "Shop by collection"
+    }
+  },
+  "collections": {
+    "general": {
+      "no_matches": "No sauces match right now. Try a different heat level."
+    }
+  },
+  "products": {
+    "price": {
+      "sale_price": "Sale price"
+    },
+    "product": {
+      "add_to_cart": "Add to cart",
+      "add_to_flight": "Add to a flight",
+      "sold_out": "Sold out",
+      "quantity": "Quantity",
+      "batch": "Batch {{ number }}",
+      "batch_panel_heading": "This batch",
+      "bottles_left_label": "Bottles left",
+      "bottles_left_unlimited": "Plenty",
+      "heat_level_label": "Heat level {{ level }} out of 5",
+      "heat_scale_label": "Heat scale",
+      "media_gallery": "Product media",
+      "pairs_with_heading": "Pairs well with",
+      "heat_comparator_0": "About as mild as a bell pepper",
+      "heat_comparator_1": "About as hot as a poblano",
+      "heat_comparator_2": "About 1x a jalapeño",
+      "heat_comparator_3": "About 4x a jalapeño",
+      "heat_comparator_4": "About 10x a jalapeño",
+      "heat_comparator_5": "Approaching pure capsaicin. Ash is not a flavour, it's a warning."
+    }
+  },
+  "cart": {
+    "general": {
+      "title": "Your cart",
+      "empty_heading": "Nothing on the shelf yet",
+      "empty_body": "Start with a bestseller, build a flight, or ease in at the mild end of the range.",
+      "empty_bestsellers": "Shop bestsellers",
+      "empty_build_flight": "Build a flight",
+      "empty_mild": "Shop the mild end",
+      "subtotal": "Subtotal",
+      "checkout": "Check out",
+      "note_label": "Order note",
+      "gift_option": "This is a gift - hide prices on the packing slip",
+      "decrease_quantity": "Decrease quantity",
+      "increase_quantity": "Increase quantity",
+      "free_shipping_reached": "You've unlocked free shipping.",
+      "free_shipping_remaining": "Add {{ amount }} more for free shipping."
+    },
+    "flight": {
+      "default_name": "Tasting flight",
+      "bottle_count": "{{ count }} bottles",
+      "slot": "Slot {{ number }}",
+      "remove": "Remove flight"
+    }
+  },
+  "templates": {
+    "404": {
+      "title": "This bottle broke",
+      "subtext": "The page you're looking for doesn't exist anymore.",
+      "link": "Back to the shelf"
+    },
+    "search": {
+      "results_for": "Search results for \"{{ terms }}\"",
+      "no_results": "No results for \"{{ terms }}\". Try a different search."
+    },
+    "contact": {
+      "form": {
+        "name": "Name",
+        "email": "Email",
+        "message": "Message",
+        "send": "Send",
+        "post_success": "Thanks - we'll get back to you soon."
+      }
+    }
+  },
+  "sections": {
+    "ember_hero": {
+      "batch_ticker": "Batch {{ number }} · {{ total }} bottles · {{ remaining }} left"
+    },
+    "heat_index_rail": {
+      "aria_label": "Filter by heat level",
+      "clear": "Clear"
+    },
+    "batch_story": {
+      "batch_label": "Batch {{ number }}",
+      "batch_label_short": "Batch",
+      "batch_unnumbered": "This batch",
+      "origin_label": "Pepper origin",
+      "harvest_label": "Harvest month",
+      "bottle_count_label": "Bottles made",
+      "unknown": "Not yet recorded",
+      "no_batches": "Add a batch block to tell this bottle's story."
+    },
+    "flavor_matrix": {
+      "comparison_intro": "If you like this, and want it hotter, try {{ neighbor }}."
+    },
+    "featured_collection": {
+      "view_all": "View all"
+    }
+  }
+}

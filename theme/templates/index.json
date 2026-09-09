@@ -1,0 +1,51 @@
+{
+  "sections": {
+    "hero": {
+      "type": "ember-hero"
+    },
+    "heat_rail": {
+      "type": "heat-index-rail",
+      "settings": {
+        "collection": "all-sauces"
+      },
+      "blocks": {
+        "tier-0": { "type": "tier", "settings": { "heat_value": "0", "label": "Mild" } },
+        "tier-1": { "type": "tier", "settings": { "heat_value": "1", "label": "Warm" } },
+        "tier-2": { "type": "tier", "settings": { "heat_value": "2", "label": "Hot" } },
+        "tier-3": { "type": "tier", "settings": { "heat_value": "3", "label": "Serious" } },
+        "tier-4": { "type": "tier", "settings": { "heat_value": "4", "label": "Reckless" } },
+        "tier-5": { "type": "tier", "settings": { "heat_value": "5", "label": "Ash" } }
+      },
+      "block_order": ["tier-0", "tier-1", "tier-2", "tier-3", "tier-4", "tier-5"]
+    },
+    "batch_story": {
+      "type": "batch-story",
+      "blocks": {
+        "batch-1": { "type": "batch", "settings": { "product": "charred-pineapple" } }
+      },
+      "block_order": ["batch-1"]
+    },
+    "flavor_matrix": {
+      "type": "flavor-matrix",
+      "settings": {
+        "collection": "all-sauces"
+      },
+      "blocks": {
+        "row-smoky": { "type": "flavor_row", "settings": { "key": "smoky", "label": "Smoky" } },
+        "row-fruity": { "type": "flavor_row", "settings": { "key": "fruity", "label": "Fruity" } },
+        "row-citrus": { "type": "flavor_row", "settings": { "key": "citrus", "label": "Citrus" } },
+        "row-umami": { "type": "flavor_row", "settings": { "key": "umami", "label": "Umami" } },
+        "row-herbal": { "type": "flavor_row", "settings": { "key": "herbal", "label": "Herbal" } },
+        "row-sweet-heat": { "type": "flavor_row", "settings": { "key": "sweet-heat", "label": "Sweet heat" } }
+      },
+      "block_order": ["row-smoky", "row-fruity", "row-citrus", "row-umami", "row-herbal", "row-sweet-heat"]
+    },
+    "featured_collection": {
+      "type": "featured-collection",
+      "settings": {
+        "collection": "all-sauces"
+      }
+    }
+  },
+  "order": ["hero", "heat_rail", "batch_story", "flavor_matrix", "featured_collection"]
+}

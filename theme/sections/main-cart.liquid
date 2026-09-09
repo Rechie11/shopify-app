@@ -1,0 +1,120 @@
+{%- liquid
+  assign threshold_cents = settings.cart_free_shipping_threshold | times: 100
+  assign progress = cart.total_price | times: 1.0 | divided_by: threshold_cents | times: 100
+  if progress > 100
+    assign progress = 100
+  endif
+  assign remaining_cents = threshold_cents | minus: cart.total_price
+  assign remaining_money = remaining_cents | money
+-%}
+<section class="section section--tight" data-section-id="{{ section.id }}">
+  <div class="container">
+    <h1>{{ 'cart.general.title' | t }}</h1>
+
+    {%- if cart.item_count == 0 -%}
+      <div class="cart-empty">
+        <h2>{{ 'cart.general.empty_heading' | t }}</h2>
+        <p class="muted">{{ 'cart.general.empty_body' | t }}</p>
+        <div class="cart-empty__entries">
+          {%- if section.settings.bestsellers_collection -%}
+            <a href="{{ section.settings.bestsellers_collection.url }}" class="button button--primary">{{ 'cart.general.empty_bestsellers' | t }}</a>
+          {%- endif -%}
+          <a href="/#flight-builder" class="button">{{ 'cart.general.empty_build_flight' | t }}</a>
+          {%- if section.settings.mild_collection -%}
+            <a href="{{ section.settings.mild_collection.url }}" class="button">{{ 'cart.general.empty_mild' | t }}</a>
+          {%- endif -%}
+        </div>
+      </div>
+    {%- else -%}
+      {%- if settings.cart_show_free_shipping_bar -%}
+        <div class="free-shipping-bar">
+          <div class="free-shipping-bar__track">
+            <div class="free-shipping-bar__fill" style="width: {{ progress }}%;"></div>
+          </div>
+          <p class="free-shipping-bar__label">
+            {%- if remaining_cents <= 0 -%}
+              {{ 'cart.general.free_shipping_reached' | t }}
+            {%- else -%}
+              {{ 'cart.general.free_shipping_remaining' | t: amount: remaining_money }}
+            {%- endif -%}
+          </p>
+        </div>
+      {%- endif -%}
+
+      <form action="{{ routes.cart_url }}" method="post" id="CartForm">
+        <div data-cart-items>
+          {%- assign seen_flights = '' -%}
+          {%- for item in cart.items -%}
+            {%- liquid
+              assign flight_id = item.properties['_flight_id']
+            -%}
+            {%- if flight_id != blank -%}
+              {%- unless seen_flights contains flight_id -%}
+                {%- assign seen_flights = seen_flights | append: flight_id | append: ',' -%}
+                {%- render 'cart-flight-group', flight_id: flight_id -%}
+              {%- endunless -%}
+            {%- else -%}
+              <div class="cart-line" data-cart-line data-line-key="{{ item.key }}">
+                <img class="cart-line__image" src="{{ item.image | image_url: width: 160 }}" alt="{{ item.image.alt | default: item.title }}" width="80" height="80" loading="lazy">
+                <div>
+                  <p><a href="{{ item.url }}">{{ item.product.title }}</a></p>
+                  {%- if item.variant.title != 'Default Title' -%}
+                    <p class="muted">{{ item.variant.title }}</p>
+                  {%- endif -%}
+                  <div style="display:flex; align-items:center; gap: var(--s-2);">
+                    <button type="button" class="button" data-quantity-decrease data-line-key="{{ item.key }}" aria-label="{{ 'cart.general.decrease_quantity' | t }}">{% render 'icon', name: 'minus' %}</button>
+                    <span data-quantity-value>{{ item.quantity }}</span>
+                    <button type="button" class="button" data-quantity-increase data-line-key="{{ item.key }}" aria-label="{{ 'cart.general.increase_quantity' | t }}">{% render 'icon', name: 'plus' %}</button>
+                  </div>
+                </div>
+                <div class="text-center">
+                  <strong>{{ item.final_line_price | money }}</strong>
+                </div>
+              </div>
+            {%- endif -%}
+          {%- endfor -%}
+        </div>
+
+        {%- if settings.cart_show_order_note or settings.cart_show_gift_option -%}
+          <div class="card" style="margin-top: var(--s-6);">
+            {%- if settings.cart_show_order_note -%}
+              <div class="field">
+                <label for="CartNote">{{ 'cart.general.note_label' | t }}</label>
+                <textarea id="CartNote" name="note" rows="3">{{ cart.note }}</textarea>
+              </div>
+            {%- endif -%}
+            {%- if settings.cart_show_gift_option -%}
+              <div class="checkbox-field">
+                <input type="checkbox" id="GiftOption" name="attributes[Gift]" value="yes" {% if cart.attributes.Gift == 'yes' %}checked{% endif %}>
+                <label for="GiftOption">{{ 'cart.general.gift_option' | t }}</label>
+              </div>
+            {%- endif -%}
+          </div>
+        {%- endif -%}
+
+        <div style="display:flex; justify-content: space-between; align-items:center; margin-top: var(--s-6);">
+          <p style="font-size: var(--step-1);">{{ 'cart.general.subtotal' | t }}: <strong>{{ cart.total_price | money }}</strong></p>
+          <button type="submit" name="checkout" class="button button--primary">{{ 'cart.general.checkout' | t }}</button>
+        </div>
+      </form>
+    {%- endif -%}
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "t:sections.main_cart.name",
+  "settings": [
+    {
+      "type": "collection",
+      "id": "bestsellers_collection",
+      "label": "t:sections.main_cart.bestsellers_collection"
+    },
+    {
+      "type": "collection",
+      "id": "mild_collection",
+      "label": "t:sections.main_cart.mild_collection"
+    }
+  ]
+}
+{% endschema %}

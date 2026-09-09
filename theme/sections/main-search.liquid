@@ -1,0 +1,36 @@
+<section class="section" data-section-id="{{ section.id }}">
+  <div class="container">
+    <form action="{{ routes.search_url }}" method="get" role="search" style="margin-bottom: var(--s-8);">
+      <div class="field" style="max-width: 480px;">
+        <label for="SearchInput" class="visually-hidden">{{ 'general.search' | t }}</label>
+        <input type="search" id="SearchInput" name="q" value="{{ search.terms | escape }}" placeholder="{{ 'general.search_placeholder' | t }}">
+      </div>
+      <button type="submit" class="button button--primary">{{ 'general.search' | t }}</button>
+    </form>
+
+    {%- if search.performed -%}
+      <h1>{{ 'templates.search.results_for' | t: terms: search.terms }}</h1>
+      {%- if search.results.size == 0 -%}
+        <p class="muted">{{ 'templates.search.no_results' | t: terms: search.terms }}</p>
+      {%- else -%}
+        <div class="grid grid--4">
+          {%- for item in search.results -%}
+            {%- if item.object_type == 'product' -%}
+              {%- render 'sauce-card', product: item -%}
+            {%- else -%}
+              <a href="{{ item.url }}" class="card">
+                <h3>{{ item.title }}</h3>
+              </a>
+            {%- endif -%}
+          {%- endfor -%}
+        </div>
+      {%- endif -%}
+    {%- endif -%}
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "t:sections.main_search.name"
+}
+{% endschema %}

@@ -1,0 +1,59 @@
+<header class="site-header scheme-ash" data-section-id="{{ section.id }}">
+  <div class="container site-header__bar">
+    <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="MobileNav" data-nav-toggle>
+      {% render 'icon', name: 'menu' %}
+      <span class="visually-hidden">{{ 'general.menu' | t }}</span>
+    </button>
+
+    <a href="{{ routes.root_url }}" class="site-header__logo">
+      {%- if section.settings.logo -%}
+        {%- render 'responsive-image', image: section.settings.logo, sizes: '160px', class: 'site-header__logo-image', alt: shop.name -%}
+      {%- else -%}
+        {{ shop.name }}
+      {%- endif -%}
+    </a>
+
+    <nav class="site-nav" aria-label="{{ 'general.primary_navigation' | t }}">
+      {%- for link in section.settings.menu.links -%}
+        <a href="{{ link.url }}"{% if link.active %} aria-current="page"{% endif %}>{{ link.title }}</a>
+      {%- endfor -%}
+    </nav>
+
+    <div class="site-header__actions">
+      <a href="{{ routes.search_url }}" class="header-icon-link" aria-label="{{ 'general.search' | t }}">
+        {% render 'icon', name: 'search' %}
+      </a>
+      <a href="{{ routes.cart_url }}" class="header-icon-link" aria-label="{{ 'general.cart' | t }}">
+        {% render 'icon', name: 'cart' %}
+        {%- if cart.item_count > 0 -%}
+          <span class="cart-count" data-cart-count>{{ cart.item_count }}</span>
+        {%- endif -%}
+      </a>
+    </div>
+  </div>
+
+  <nav id="MobileNav" class="mobile-nav" aria-label="{{ 'general.primary_navigation' | t }}" hidden>
+    {%- for link in section.settings.menu.links -%}
+      <a href="{{ link.url }}"{% if link.active %} aria-current="page"{% endif %}>{{ link.title }}</a>
+    {%- endfor -%}
+  </nav>
+</header>
+
+{% schema %}
+{
+  "name": "t:sections.header.name",
+  "settings": [
+    {
+      "type": "image_picker",
+      "id": "logo",
+      "label": "t:sections.header.logo"
+    },
+    {
+      "type": "link_list",
+      "id": "menu",
+      "label": "t:sections.header.menu",
+      "default": "main-menu"
+    }
+  ]
+}
+{% endschema %}

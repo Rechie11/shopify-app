@@ -1,0 +1,43 @@
+<section class="section section--tight" data-section-id="{{ section.id }}">
+  <div class="container">
+    {%- paginate collection.products by section.settings.products_per_page -%}
+      {%- if collection.products.size == 0 -%}
+        <p class="empty-state muted">{{ 'collections.general.no_matches' | t }}</p>
+      {%- else -%}
+        <div class="grid grid--4">
+          {%- for product in collection.products -%}
+            {%- render 'sauce-card', product: product -%}
+          {%- endfor -%}
+        </div>
+      {%- endif -%}
+
+      {%- if paginate.pages > 1 -%}
+        <nav class="pagination" aria-label="{{ 'general.pagination.label' | t }}" style="margin-top: var(--s-8); display: flex; gap: var(--s-2); justify-content: center;">
+          {%- if paginate.previous -%}
+            <a href="{{ paginate.previous.url }}" class="button">{{ 'general.pagination.previous' | t }}</a>
+          {%- endif -%}
+          {%- if paginate.next -%}
+            <a href="{{ paginate.next.url }}" class="button">{{ 'general.pagination.next' | t }}</a>
+          {%- endif -%}
+        </nav>
+      {%- endif -%}
+    {%- endpaginate -%}
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "t:sections.main_collection.name",
+  "settings": [
+    {
+      "type": "range",
+      "id": "products_per_page",
+      "label": "t:sections.main_collection.products_per_page",
+      "min": 8,
+      "max": 48,
+      "step": 4,
+      "default": 24
+    }
+  ]
+}
+{% endschema %}

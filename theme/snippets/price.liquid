@@ -1,0 +1,17 @@
+{%- comment -%}
+  Renders a price, with a struck-through compare-at price when on sale.
+  Accepts: variant_or_product (required, must respond to .price / .compare_at_price)
+{%- endcomment -%}
+{%- liquid
+  assign target = variant_or_product
+  assign compare_at = target.compare_at_price
+-%}
+<span class="sauce-card__price">
+  {%- if compare_at and compare_at > target.price -%}
+    <span class="price--compare">{{ compare_at | money }}</span>
+    <span class="price--sale">{{ target.price | money }}</span>
+    <span class="visually-hidden">{{ 'products.price.sale_price' | t }}</span>
+  {%- else -%}
+    {{ target.price | money }}
+  {%- endif -%}
+</span>

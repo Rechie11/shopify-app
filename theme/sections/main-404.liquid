@@ -1,0 +1,13 @@
+<section class="section text-center" data-section-id="{{ section.id }}">
+  <div class="container">
+    <h1>{{ 'templates.404.title' | t }}</h1>
+    <p class="muted">{{ 'templates.404.subtext' | t }}</p>
+    <a href="{{ routes.root_url }}" class="button button--primary">{{ 'templates.404.link' | t }}</a>
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "t:sections.main_404.name"
+}
+{% endschema %}

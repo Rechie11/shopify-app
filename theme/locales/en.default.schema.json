@@ -1,0 +1,184 @@
+{
+  "sections": {
+    "header": {
+      "name": "Header",
+      "logo": "Logo",
+      "menu": "Menu"
+    },
+    "footer": {
+      "name": "Footer",
+      "tagline": "Tagline",
+      "blocks": {
+        "link_list": {
+          "name": "Link list",
+          "heading": "Heading",
+          "menu": "Menu"
+        }
+      }
+    },
+    "ember_hero": {
+      "name": "Ember hero",
+      "image": "Background image",
+      "video_url": "Background video URL",
+      "video_url_info": "MP4 URL. Overrides the image when set.",
+      "heading": "Heading",
+      "subheading": "Subheading",
+      "batch_number": "Batch number",
+      "batch_total": "Batch total bottles",
+      "batch_remaining": "Bottles remaining",
+      "cta_header": "Calls to action",
+      "cta1_label": "Primary button label",
+      "cta1_url": "Primary button link",
+      "cta2_label": "Secondary button label",
+      "cta2_url": "Secondary button link",
+      "layout_header": "Layout",
+      "overlay_opacity": "Overlay opacity",
+      "text_align": "Text alignment",
+      "text_align_left": "Left",
+      "text_align_center": "Center",
+      "height": "Section height",
+      "height_s": "Small",
+      "height_m": "Medium",
+      "height_l": "Large",
+      "height_full": "Full screen"
+    },
+    "heat_index_rail": {
+      "name": "Heat index rail",
+      "heading": "Heading",
+      "collection": "Collection to filter",
+      "products_to_show": "Products to show",
+      "blocks": {
+        "tier": {
+          "name": "Heat tier",
+          "heat_value": "Heat value",
+          "label": "Label"
+        }
+      }
+    },
+    "batch_story": {
+      "name": "Batch story",
+      "heading": "Heading",
+      "color_scheme": "Color scheme",
+      "scheme_ash": "Ash",
+      "scheme_char": "Char",
+      "scheme_ember": "Ember",
+      "blocks": {
+        "batch": {
+          "name": "Batch",
+          "product": "Product",
+          "product_info": "Reads batch metafields from this product when set.",
+          "image": "Fallback image",
+          "fallback_title": "Fallback title",
+          "fallback_batch_number": "Fallback batch number",
+          "fallback_pepper_origin": "Fallback pepper origin",
+          "fallback_harvest_month": "Fallback harvest month",
+          "fallback_bottle_count": "Fallback bottle count",
+          "fallback_maker_note": "Fallback maker's note"
+        }
+      }
+    },
+    "flavor_matrix": {
+      "name": "Flavor matrix",
+      "heading": "Heading",
+      "collection": "Collection",
+      "blocks": {
+        "flavor_row": {
+          "name": "Flavor row",
+          "key": "Flavor key",
+          "key_info": "Must match the product's flavor profile metafield value exactly.",
+          "label": "Label"
+        }
+      }
+    },
+    "collection_banner": {
+      "name": "Collection banner",
+      "color_scheme": "Color scheme",
+      "scheme_ash": "Ash",
+      "scheme_char": "Char"
+    },
+    "main_collection": {
+      "name": "Collection grid",
+      "products_per_page": "Products per page"
+    },
+    "featured_collection": {
+      "name": "Featured collection",
+      "heading": "Heading",
+      "collection": "Collection",
+      "products_to_show": "Products to show"
+    },
+    "related_products": {
+      "name": "Related products",
+      "heading": "Heading",
+      "products_to_show": "Products to show"
+    },
+    "main_product": {
+      "name": "Product page",
+      "flavor_matrix_url": "Flavor matrix link",
+      "flight_builder_url": "Flight builder link"
+    },
+    "main_cart": {
+      "name": "Cart",
+      "bestsellers_collection": "Bestsellers collection",
+      "mild_collection": "Mild collection"
+    },
+    "main_page": {
+      "name": "Page"
+    },
+    "main_page_contact": {
+      "name": "Contact page"
+    },
+    "main_list_collections": {
+      "name": "Collections list"
+    },
+    "main_search": {
+      "name": "Search results"
+    },
+    "main_404": {
+      "name": "404 page"
+    }
+  },
+  "settings": {
+    "brand": {
+      "name": "Brand",
+      "colors_header": "Surface colors",
+      "color_ash": "Ash (page ground)",
+      "color_ash_deep": "Ash deep (cards)",
+      "color_char": "Char (near-black)",
+      "color_smoke": "Smoke (secondary text)",
+      "color_ember": "Ember (primary action)",
+      "color_lime": "Lime (accent)",
+      "heat_header": "Heat scale",
+      "heat_paragraph": "These six colours also drive the collection filter rail, the product page dial, and the Flight Builder's heat curve.",
+      "heat_0": "Heat 0 - Mild",
+      "heat_1": "Heat 1 - Warm",
+      "heat_2": "Heat 2 - Hot",
+      "heat_3": "Heat 3 - Serious",
+      "heat_4": "Heat 4 - Reckless",
+      "heat_5": "Heat 5 - Ash",
+      "type_header": "Typography",
+      "font_display": "Display font",
+      "font_body": "Body font",
+      "layout_header": "Layout",
+      "container_width": "Container width",
+      "radius": "Corner radius"
+    },
+    "social": {
+      "name": "Social media",
+      "header": "Accounts",
+      "instagram": "Instagram URL",
+      "facebook": "Facebook URL",
+      "tiktok": "TikTok URL"
+    },
+    "cart": {
+      "name": "Cart",
+      "show_free_shipping_bar": "Show free shipping progress bar",
+      "free_shipping_threshold": "Free shipping threshold",
+      "show_order_note": "Show order note field",
+      "show_gift_option": "Show gift option"
+    },
+    "favicon": {
+      "name": "Favicon",
+      "image": "Favicon image"
+    }
+  }
+}

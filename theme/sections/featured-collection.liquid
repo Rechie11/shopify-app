@@ -1,0 +1,48 @@
+<section class="section" data-section-id="{{ section.id }}">
+  <div class="container">
+    <div style="display:flex; justify-content: space-between; align-items: baseline; gap: var(--s-4);">
+      <h2>{{ section.settings.heading }}</h2>
+      {%- if section.settings.collection -%}
+        <a href="{{ section.settings.collection.url }}" class="button button--ghost">{{ 'sections.featured_collection.view_all' | t }}</a>
+      {%- endif -%}
+    </div>
+    <div class="grid grid--4">
+      {%- for product in section.settings.collection.products limit: section.settings.products_to_show -%}
+        {%- render 'sauce-card', product: product -%}
+      {%- endfor -%}
+    </div>
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "t:sections.featured_collection.name",
+  "settings": [
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "t:sections.featured_collection.heading",
+      "default": "The current lineup"
+    },
+    {
+      "type": "collection",
+      "id": "collection",
+      "label": "t:sections.featured_collection.collection"
+    },
+    {
+      "type": "range",
+      "id": "products_to_show",
+      "label": "t:sections.featured_collection.products_to_show",
+      "min": 4,
+      "max": 12,
+      "step": 4,
+      "default": 8
+    }
+  ],
+  "presets": [
+    {
+      "name": "t:sections.featured_collection.name"
+    }
+  ]
+}
+{% endschema %}

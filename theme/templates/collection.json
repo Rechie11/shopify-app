@@ -1,0 +1,23 @@
+{
+  "sections": {
+    "banner": {
+      "type": "collection-banner"
+    },
+    "heat_rail": {
+      "type": "heat-index-rail",
+      "blocks": {
+        "tier-0": { "type": "tier", "settings": { "heat_value": "0", "label": "Mild" } },
+        "tier-1": { "type": "tier", "settings": { "heat_value": "1", "label": "Warm" } },
+        "tier-2": { "type": "tier", "settings": { "heat_value": "2", "label": "Hot" } },
+        "tier-3": { "type": "tier", "settings": { "heat_value": "3", "label": "Serious" } },
+        "tier-4": { "type": "tier", "settings": { "heat_value": "4", "label": "Reckless" } },
+        "tier-5": { "type": "tier", "settings": { "heat_value": "5", "label": "Ash" } }
+      },
+      "block_order": ["tier-0", "tier-1", "tier-2", "tier-3", "tier-4", "tier-5"]
+    },
+    "main": {
+      "type": "main-collection"
+    }
+  },
+  "order": ["banner", "heat_rail", "main"]
+}

@@ -1,0 +1,60 @@
+{%- comment -%}
+  Groups every cart line sharing a _flight_id into one visual card: one image
+  cluster, one title, one price, one "Remove flight" control. See
+  THEME_SPEC.md §4.5 / §6.
+  Accepts: flight_id (required)
+{%- endcomment -%}
+{%- liquid
+  assign flight_name = ''
+  assign flight_total = 0
+  assign flight_quantity = 0
+  assign line_keys = ''
+-%}
+<div class="cart-flight-group" data-flight-id="{{ flight_id }}">
+  <div class="cart-flight-group__header">
+    <div>
+      {%- for item in cart.items -%}
+        {%- if item.properties['_flight_id'] == flight_id -%}
+          {%- liquid
+            assign flight_name = item.properties['_flight_name'] | default: flight_name
+            assign flight_total = flight_total | plus: item.final_line_price
+            assign flight_quantity = flight_quantity | plus: item.quantity
+            assign line_keys = line_keys | append: item.key | append: '|'
+          -%}
+        {%- endif -%}
+      {%- endfor -%}
+      <p class="cart-flight-group__title">{{ flight_name | default: 'cart.flight.default_name' | t }}</p>
+      <p class="muted">{{ 'cart.flight.bottle_count' | t: count: flight_quantity }}</p>
+    </div>
+    <div class="cart-flight-group__stack" aria-hidden="true">
+      {%- for item in cart.items limit: 4 -%}
+        {%- if item.properties['_flight_id'] == flight_id -%}
+          <img src="{{ item.image | image_url: width: 96 }}" alt="" width="48" height="48" loading="lazy">
+        {%- endif -%}
+      {%- endfor -%}
+    </div>
+  </div>
+
+  <ul>
+    {%- for item in cart.items -%}
+      {%- if item.properties['_flight_id'] == flight_id -%}
+        <li>
+          {{ item.product.title }}{% if item.variant.title != 'Default Title' %} — {{ item.variant.title }}{% endif %}
+          <span class="muted">{{ 'cart.flight.slot' | t: number: item.properties['_flight_slot'] }}</span>
+        </li>
+      {%- endif -%}
+    {%- endfor -%}
+  </ul>
+
+  <div class="cart-flight-group__footer">
+    <strong>{{ flight_total | money }}</strong>
+    <button
+      type="button"
+      class="button button--ghost cart-flight-remove"
+      data-flight-remove
+      data-line-keys="{{ line_keys }}"
+    >
+      {{ 'cart.flight.remove' | t }}
+    </button>
+  </div>
+</div>

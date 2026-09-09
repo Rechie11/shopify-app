@@ -1,0 +1,158 @@
+{%- liquid
+  assign height_class = 'ember-hero--' | append: section.settings.height
+  assign align_class = ''
+  if section.settings.text_align == 'center'
+    assign align_class = 'ember-hero--align-center'
+  endif
+-%}
+<section class="ember-hero {{ height_class }} {{ align_class }}" data-section-id="{{ section.id }}">
+  <div class="ember-hero__media">
+    {%- if section.settings.video_url != blank -%}
+      <video autoplay muted loop playsinline aria-hidden="true">
+        <source src="{{ section.settings.video_url }}" type="video/mp4">
+      </video>
+    {%- elsif section.settings.image -%}
+      {%- render 'responsive-image', image: section.settings.image, sizes: '100vw', loading: 'eager', fetchpriority: 'high', alt: section.settings.heading -%}
+    {%- endif -%}
+    <div class="ember-hero__overlay" style="opacity: {{ section.settings.overlay_opacity | divided_by: 100.0 }};"></div>
+  </div>
+
+  <div class="container ember-hero__content">
+    {%- if section.settings.batch_number != blank -%}
+      <p class="ember-hero__ticker">
+        {{ 'sections.ember_hero.batch_ticker' | t: number: section.settings.batch_number, total: section.settings.batch_total, remaining: section.settings.batch_remaining }}
+      </p>
+    {%- endif -%}
+
+    <h1 class="ember-hero__heading">{{ section.settings.heading }}</h1>
+
+    {%- if section.settings.subheading != blank -%}
+      <p class="ember-hero__subheading">{{ section.settings.subheading }}</p>
+    {%- endif -%}
+
+    <div class="ember-hero__ctas">
+      {%- if section.settings.cta1_label != blank -%}
+        <a href="{{ section.settings.cta1_url }}" class="button button--primary">{{ section.settings.cta1_label }}</a>
+      {%- endif -%}
+      {%- if section.settings.cta2_label != blank -%}
+        <a href="{{ section.settings.cta2_url }}" class="button button--ghost">{{ section.settings.cta2_label }}</a>
+      {%- endif -%}
+    </div>
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "t:sections.ember_hero.name",
+  "settings": [
+    {
+      "type": "image_picker",
+      "id": "image",
+      "label": "t:sections.ember_hero.image"
+    },
+    {
+      "type": "text",
+      "id": "video_url",
+      "label": "t:sections.ember_hero.video_url",
+      "info": "t:sections.ember_hero.video_url_info"
+    },
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "t:sections.ember_hero.heading",
+      "default": "Batch 014. Not for the timid."
+    },
+    {
+      "type": "textarea",
+      "id": "subheading",
+      "label": "t:sections.ember_hero.subheading",
+      "default": "Charred pineapple, scotch bonnet, and a bad decision. Fire-roasted in small batches, gone when it's gone."
+    },
+    {
+      "type": "text",
+      "id": "batch_number",
+      "label": "t:sections.ember_hero.batch_number",
+      "default": "014"
+    },
+    {
+      "type": "number",
+      "id": "batch_total",
+      "label": "t:sections.ember_hero.batch_total",
+      "default": 340
+    },
+    {
+      "type": "number",
+      "id": "batch_remaining",
+      "label": "t:sections.ember_hero.batch_remaining",
+      "default": 61
+    },
+    {
+      "type": "header",
+      "content": "t:sections.ember_hero.cta_header"
+    },
+    {
+      "type": "text",
+      "id": "cta1_label",
+      "label": "t:sections.ember_hero.cta1_label",
+      "default": "Shop the shelf"
+    },
+    {
+      "type": "url",
+      "id": "cta1_url",
+      "label": "t:sections.ember_hero.cta1_url"
+    },
+    {
+      "type": "text",
+      "id": "cta2_label",
+      "label": "t:sections.ember_hero.cta2_label",
+      "default": "Build a flight"
+    },
+    {
+      "type": "url",
+      "id": "cta2_url",
+      "label": "t:sections.ember_hero.cta2_url"
+    },
+    {
+      "type": "header",
+      "content": "t:sections.ember_hero.layout_header"
+    },
+    {
+      "type": "range",
+      "id": "overlay_opacity",
+      "label": "t:sections.ember_hero.overlay_opacity",
+      "min": 0,
+      "max": 80,
+      "step": 5,
+      "unit": "%",
+      "default": 35
+    },
+    {
+      "type": "select",
+      "id": "text_align",
+      "label": "t:sections.ember_hero.text_align",
+      "options": [
+        { "value": "left", "label": "t:sections.ember_hero.text_align_left" },
+        { "value": "center", "label": "t:sections.ember_hero.text_align_center" }
+      ],
+      "default": "left"
+    },
+    {
+      "type": "select",
+      "id": "height",
+      "label": "t:sections.ember_hero.height",
+      "options": [
+        { "value": "s", "label": "t:sections.ember_hero.height_s" },
+        { "value": "m", "label": "t:sections.ember_hero.height_m" },
+        { "value": "l", "label": "t:sections.ember_hero.height_l" },
+        { "value": "full", "label": "t:sections.ember_hero.height_full" }
+      ],
+      "default": "l"
+    }
+  ],
+  "presets": [
+    {
+      "name": "t:sections.ember_hero.name"
+    }
+  ]
+}
+{% endschema %}

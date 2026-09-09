@@ -1,0 +1,21 @@
+<section class="section" data-section-id="{{ section.id }}">
+  <div class="container">
+    <h1>{{ 'list_collections.general.title' | t }}</h1>
+    <div class="grid grid--3">
+      {%- for collection in collections -%}
+        <a href="{{ collection.url }}" class="sauce-card">
+          <div class="sauce-card__media">
+            {%- render 'responsive-image', image: collection.featured_image, sizes: '(min-width: 960px) 33vw, 100vw', alt: collection.title -%}
+          </div>
+          <h3 class="sauce-card__title">{{ collection.title }}</h3>
+        </a>
+      {%- endfor -%}
+    </div>
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "t:sections.main_list_collections.name"
+}
+{% endschema %}

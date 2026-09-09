@@ -1,0 +1,27 @@
+{%- comment -%}
+  Product card used across the grid, collection, and matrix sections.
+  Accepts: product (required), show_heat (optional, default true)
+{%- endcomment -%}
+{%- liquid
+  assign heat_level = product.metafields.custom.heat_level.value
+  assign show_heat_badge = show_heat | default: true
+  assign card_alt = product.featured_image.alt | default: product.title
+-%}
+<a href="{{ product.url }}" class="sauce-card" data-heat="{{ heat_level | default: -1 }}">
+  <div class="sauce-card__media">
+    {%- if show_heat_badge and heat_level != blank -%}
+      <span class="heat-badge sauce-card__heat" data-heat="{{ heat_level }}">
+        {% render 'icon', name: 'flame' %} {{ heat_level }}
+      </span>
+    {%- endif -%}
+    {%- unless product.available -%}
+      <span class="badge sauce-card__badge-sold-out">{{ 'products.product.sold_out' | t }}</span>
+    {%- endunless -%}
+    {%- render 'responsive-image', image: product.featured_image, sizes: '(min-width: 960px) 25vw, (min-width: 640px) 50vw, 100vw', alt: card_alt -%}
+  </div>
+  <h3 class="sauce-card__title">{{ product.title }}</h3>
+  {%- if product.metafields.custom.batch_number.value -%}
+    <p class="sauce-card__meta">{{ 'products.product.batch' | t: number: product.metafields.custom.batch_number.value }}</p>
+  {%- endif -%}
+  {%- render 'price', variant_or_product: product -%}
+</a>

@@ -1,0 +1,66 @@
+{%- comment -%}
+  Renders the brand design tokens as CSS custom properties, sourced from
+  settings_schema.json so a merchant can rebrand from the theme editor
+  without touching CSS. See THEME_SPEC.md §1.1.
+{%- endcomment -%}
+<style>
+  :root {
+    /* Surface */
+    --c-ash: {{ settings.color_ash }};
+    --c-ash-deep: {{ settings.color_ash_deep }};
+    --c-char: {{ settings.color_char }};
+    --c-smoke: {{ settings.color_smoke }};
+
+    /* Heat scale */
+    --c-heat-0: {{ settings.color_heat_0 }};
+    --c-heat-1: {{ settings.color_heat_1 }};
+    --c-heat-2: {{ settings.color_heat_2 }};
+    --c-heat-3: {{ settings.color_heat_3 }};
+    --c-heat-4: {{ settings.color_heat_4 }};
+    --c-heat-5: {{ settings.color_heat_5 }};
+
+    --c-ember: {{ settings.color_ember }};
+    --c-lime: {{ settings.color_lime }};
+
+    /* Type */
+    --f-display:
+      {{ settings.font_display.family }}, {{ settings.font_display.fallback_families }};
+    --f-body:
+      {{ settings.font_body.family }}, {{ settings.font_body.fallback_families }};
+
+    --step--1: clamp(0.83rem, 0.8rem + 0.15vw, 0.92rem);
+    --step-0: clamp(1rem, 0.96rem + 0.2vw, 1.13rem);
+    --step-1: clamp(1.33rem, 1.2rem + 0.6vw, 1.75rem);
+    --step-2: clamp(1.78rem, 1.5rem + 1.4vw, 2.9rem);
+    --step-3: clamp(2.37rem, 1.8rem + 2.8vw, 4.8rem);
+
+    /* Space - 4px base, one scale, used everywhere */
+    --s-1: 0.25rem;
+    --s-2: 0.5rem;
+    --s-3: 0.75rem;
+    --s-4: 1rem;
+    --s-6: 1.5rem;
+    --s-8: 2rem;
+    --s-12: 3rem;
+    --s-16: 4rem;
+    --s-24: 6rem;
+
+    --container-width: {{ settings.container_width }}px;
+    --radius: {{ settings.radius }}px;
+    --ease: cubic-bezier(0.2, 0.7, 0.3, 1);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+
+  {{ settings.font_display | font_face: font_display: "swap" }}
+  {{ settings.font_body | font_face: font_display: "swap" }}
+</style>

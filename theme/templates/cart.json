@@ -1,0 +1,12 @@
+{
+  "sections": {
+    "main": {
+      "type": "main-cart",
+      "settings": {
+        "bestsellers_collection": "all-sauces",
+        "mild_collection": "all-sauces"
+      }
+    }
+  },
+  "order": ["main"]
+}

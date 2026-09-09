@@ -1,0 +1,162 @@
+{%- comment -%}
+  The signature heat filter. See THEME_SPEC.md §3.2.
+
+  On a collection page it drives Shopify's native metafield filter
+  (filter.p.m.custom.heat_level) so the state is URL-addressable and
+  back-button-correct. Everywhere else it filters an in-page grid of
+  `settings.collection` client-side via [hidden] toggling - no refetch.
+{%- endcomment -%}
+{%- liquid
+  assign is_collection_mode = false
+  if template.name == 'collection' and collection
+    assign is_collection_mode = true
+  endif
+
+  assign heat_filter = blank
+  if is_collection_mode
+    for collection_filter in collection.filters
+      if collection_filter.param_name contains 'heat_level'
+        assign heat_filter = collection_filter
+      endif
+    endfor
+  endif
+
+  assign source_collection = section.settings.collection
+  if is_collection_mode
+    assign source_collection = collection
+  endif
+
+  assign rail_mode = 'client'
+  if is_collection_mode
+    assign rail_mode = 'collection'
+  endif
+-%}
+
+<section class="section section--tight" data-section-id="{{ section.id }}">
+  <div class="container">
+    {%- if section.settings.heading != blank -%}
+      <h2>{{ section.settings.heading }}</h2>
+    {%- endif -%}
+
+    <div
+      class="heat-rail"
+      role="listbox"
+      aria-label="{{ 'sections.heat_index_rail.aria_label' | t }}"
+      data-heat-rail
+      data-mode="{{ rail_mode }}"
+      data-grid-target="HeatFilteredGrid-{{ section.id }}"
+    >
+      {%- for block in section.blocks -%}
+        {%- liquid
+          assign tier_url = blank
+          assign tier_active = false
+          if heat_filter
+            for value in heat_filter.values
+              if value.label == block.settings.heat_value
+                assign tier_url = value.url_to_add
+                assign tier_active = value.active
+              endif
+            endfor
+          endif
+        -%}
+        <button
+          type="button"
+          class="heat-rail__item"
+          role="option"
+          aria-selected="{{ tier_active }}"
+          data-heat-tier="{{ block.settings.heat_value }}"
+          {% if tier_url %}data-href="{{ tier_url }}"{% endif %}
+          {{ block.shopify_attributes }}
+        >
+          <span class="heat-rail__flame" data-heat="{{ block.settings.heat_value }}" style="background: var(--c-heat-{{ block.settings.heat_value }});"></span>
+          <span class="heat-rail__label">{{ block.settings.label }}</span>
+        </button>
+      {%- endfor -%}
+
+      {%- if heat_filter -%}
+        <button type="button" class="heat-rail__item" data-heat-tier-clear {% unless heat_filter.active_values.size > 0 %}hidden{% endunless %}>
+          <span class="heat-rail__label">{{ 'sections.heat_index_rail.clear' | t }}</span>
+        </button>
+      {%- endif -%}
+    </div>
+
+    {%- unless is_collection_mode -%}
+      <div class="grid grid--4" id="HeatFilteredGrid-{{ section.id }}" data-heat-grid>
+        {%- for product in source_collection.products limit: section.settings.products_to_show -%}
+          <div data-heat-card data-heat="{{ product.metafields.custom.heat_level.value | default: -1 }}">
+            {%- render 'sauce-card', product: product -%}
+          </div>
+        {%- endfor -%}
+      </div>
+    {%- endunless -%}
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "t:sections.heat_index_rail.name",
+  "settings": [
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "t:sections.heat_index_rail.heading",
+      "default": "Shop by heat"
+    },
+    {
+      "type": "collection",
+      "id": "collection",
+      "label": "t:sections.heat_index_rail.collection"
+    },
+    {
+      "type": "range",
+      "id": "products_to_show",
+      "label": "t:sections.heat_index_rail.products_to_show",
+      "min": 4,
+      "max": 24,
+      "step": 4,
+      "default": 12
+    }
+  ],
+  "blocks": [
+    {
+      "type": "tier",
+      "name": "t:sections.heat_index_rail.blocks.tier.name",
+      "settings": [
+        {
+          "type": "select",
+          "id": "heat_value",
+          "label": "t:sections.heat_index_rail.blocks.tier.heat_value",
+          "options": [
+            { "value": "0", "label": "0" },
+            { "value": "1", "label": "1" },
+            { "value": "2", "label": "2" },
+            { "value": "3", "label": "3" },
+            { "value": "4", "label": "4" },
+            { "value": "5", "label": "5" }
+          ],
+          "default": "0"
+        },
+        {
+          "type": "text",
+          "id": "label",
+          "label": "t:sections.heat_index_rail.blocks.tier.label",
+          "default": "Mild"
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "t:sections.heat_index_rail.name",
+      "blocks": [
+        { "type": "tier", "settings": { "heat_value": "0", "label": "Mild" } },
+        { "type": "tier", "settings": { "heat_value": "1", "label": "Warm" } },
+        { "type": "tier", "settings": { "heat_value": "2", "label": "Hot" } },
+        { "type": "tier", "settings": { "heat_value": "3", "label": "Serious" } },
+        { "type": "tier", "settings": { "heat_value": "4", "label": "Reckless" } },
+        { "type": "tier", "settings": { "heat_value": "5", "label": "Ash" } }
+      ]
+    }
+  ]
+}
+{% endschema %}

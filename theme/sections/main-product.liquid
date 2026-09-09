@@ -1,0 +1,162 @@
+{%- liquid
+  assign current_variant = product.selected_or_first_available_variant
+  assign heat_level = product.metafields.custom.heat_level.value
+  assign flavor_profile = product.metafields.custom.flavor_profile.value
+  assign pairs_with = product.metafields.custom.pairs_with.value
+  assign gallery_main_image = current_variant.image | default: product.featured_image
+-%}
+<section class="section section--tight" data-section-id="{{ section.id }}">
+  <div class="container">
+    <div class="grid grid--2">
+      <div>
+        <div class="product-gallery">
+          <div class="product-gallery__main">
+            <button type="button" data-gallery-open aria-haspopup="dialog" style="all:unset; cursor: zoom-in; display:block; width:100%; height:100%;">
+              {%- render 'responsive-image', image: gallery_main_image, sizes: '(min-width: 900px) 50vw, 100vw', loading: 'eager', class: 'js-gallery-main-image', alt: product.title -%}
+            </button>
+          </div>
+          {%- if product.media.size > 1 -%}
+            <div class="product-gallery__thumbs" role="tablist" aria-label="{{ 'products.product.media_gallery' | t }}">
+              {%- for media in product.media -%}
+                <button type="button" role="tab" aria-current="{{ forloop.first }}" data-gallery-thumb data-full="{{ media.preview_image | image_url: width: 1600 }}">
+                  <img src="{{ media.preview_image | image_url: width: 120 }}" alt="{{ media.alt | default: product.title }}" width="64" height="64" loading="lazy">
+                </button>
+              {%- endfor -%}
+            </div>
+          {%- endif -%}
+        </div>
+
+        <dialog data-gallery-dialog aria-label="{{ product.title }}">
+          <button type="button" data-gallery-close class="button" style="position:absolute; top: var(--s-3); right: var(--s-3);">
+            {% render 'icon', name: 'close' %}
+            <span class="visually-hidden">{{ 'general.close' | t }}</span>
+          </button>
+          <img data-gallery-dialog-image src="{{ product.featured_image | image_url: width: 1600 }}" alt="{{ product.title }}" width="{{ product.featured_image.width }}" height="{{ product.featured_image.height }}">
+        </dialog>
+      </div>
+
+      <div>
+        <h1>{{ product.title }}</h1>
+        {%- render 'price', variant_or_product: current_variant -%}
+
+        {%- if heat_level != blank -%}
+          {%- render 'heat-dial', heat_level: heat_level -%}
+        {%- endif -%}
+
+        {%- if flavor_profile != blank -%}
+          <div class="flavor-chips" style="margin-block: var(--s-4);">
+            <a href="{{ section.settings.flavor_matrix_url | default: '#flavor-matrix' }}" class="flavor-chip">{{ flavor_profile }}</a>
+          </div>
+        {%- endif -%}
+
+        <div class="product-description">{{ product.description }}</div>
+
+        {% form 'product', product, id: 'ProductForm' %}
+          {%- if product.variants.size > 1 -%}
+            {%- for option in product.options_with_values -%}
+              <div class="field">
+                <label for="Option-{{ option.position }}">{{ option.name }}</label>
+                <select id="Option-{{ option.position }}" name="options[{{ option.name | escape }}]" data-product-option>
+                  {%- for value in option.values -%}
+                    <option value="{{ value | escape }}" {% if option.selected_value == value %}selected{% endif %}>{{ value }}</option>
+                  {%- endfor -%}
+                </select>
+              </div>
+            {%- endfor -%}
+          {%- endif -%}
+
+          <input type="hidden" name="id" value="{{ current_variant.id }}" data-product-variant-id>
+
+          <div class="field-row" style="display:flex; gap: var(--s-4); align-items: center;">
+            <label for="Quantity" class="visually-hidden">{{ 'products.product.quantity' | t }}</label>
+            <input type="number" id="Quantity" name="quantity" value="1" min="1" style="width: 80px; min-height:44px; border:1px solid var(--c-smoke); border-radius: var(--radius); padding: var(--s-2);">
+            <button type="submit" class="button button--primary" {% unless current_variant.available %}disabled{% endunless %}>
+              {%- if current_variant.available -%}
+                {{ 'products.product.add_to_cart' | t }}
+              {%- else -%}
+                {{ 'products.product.sold_out' | t }}
+              {%- endif -%}
+            </button>
+          </div>
+        {% endform %}
+
+        <a href="{{ section.settings.flight_builder_url | default: '/#flight-builder' }}" class="button button--ghost" style="margin-top: var(--s-4);" data-add-to-flight data-variant-id="{{ current_variant.id }}">
+          {{ 'products.product.add_to_flight' | t }}
+        </a>
+
+        <div class="card" style="margin-top: var(--s-8);">
+          <h4 class="mt-0">{{ 'products.product.batch_panel_heading' | t }}</h4>
+          <div class="batch-story__facts">
+            {%- if product.metafields.custom.batch_number.value != blank -%}
+              <div>
+                <p class="batch-fact__label">{{ 'sections.batch_story.batch_label_short' | t }}</p>
+                <p class="batch-fact__value">{{ product.metafields.custom.batch_number.value }}</p>
+              </div>
+            {%- endif -%}
+            {%- if product.metafields.custom.bottle_count.value != blank -%}
+              <div>
+                <p class="batch-fact__label">{{ 'sections.batch_story.bottle_count_label' | t }}</p>
+                <p class="batch-fact__value">{{ product.metafields.custom.bottle_count.value }}</p>
+              </div>
+            {%- endif -%}
+            <div>
+              <p class="batch-fact__label">{{ 'products.product.bottles_left_label' | t }}</p>
+              <p class="batch-fact__value">
+                {%- if current_variant.inventory_management and current_variant.inventory_policy == 'deny' -%}
+                  {{ current_variant.inventory_quantity }}
+                {%- else -%}
+                  {{ 'products.product.bottles_left_unlimited' | t }}
+                {%- endif -%}
+              </p>
+            </div>
+            {%- if product.metafields.custom.harvest_month.value != blank -%}
+              <div>
+                <p class="batch-fact__label">{{ 'sections.batch_story.harvest_label' | t }}</p>
+                <p class="batch-fact__value">{{ product.metafields.custom.harvest_month.value }}</p>
+              </div>
+            {%- endif -%}
+          </div>
+        </div>
+
+        {%- if pairs_with != blank -%}
+          <div style="margin-top: var(--s-8);">
+            <h4>{{ 'products.product.pairs_with_heading' | t }}</h4>
+            <div class="grid grid--3">
+              {%- for paired_product in pairs_with -%}
+                {%- render 'sauce-card', product: paired_product, show_heat: false -%}
+              {%- endfor -%}
+            </div>
+          </div>
+        {%- endif -%}
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="sticky-atc" data-sticky-atc hidden>
+  <div>
+    <strong>{{ product.title }}</strong>
+    {%- render 'price', variant_or_product: current_variant -%}
+  </div>
+  <button type="button" class="button button--primary" data-sticky-atc-button {% unless current_variant.available %}disabled{% endunless %}>
+    {{ 'products.product.add_to_cart' | t }}
+  </button>
+</div>
+
+{% schema %}
+{
+  "name": "t:sections.main_product.name",
+  "settings": [
+    {
+      "type": "url",
+      "id": "flavor_matrix_url",
+      "label": "t:sections.main_product.flavor_matrix_url"
+    },
+    {
+      "type": "url",
+      "id": "flight_builder_url",
+      "label": "t:sections.main_product.flight_builder_url"
+    }
+  ]
+}
+{% endschema %}

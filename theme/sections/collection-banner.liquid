@@ -1,0 +1,26 @@
+<section class="section--tight scheme-{{ section.settings.color_scheme }}" data-section-id="{{ section.id }}">
+  <div class="container text-center">
+    <h1>{{ collection.title }}</h1>
+    {%- if collection.description != blank -%}
+      <div class="muted">{{ collection.description }}</div>
+    {%- endif -%}
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "t:sections.collection_banner.name",
+  "settings": [
+    {
+      "type": "select",
+      "id": "color_scheme",
+      "label": "t:sections.collection_banner.color_scheme",
+      "options": [
+        { "value": "ash", "label": "t:sections.collection_banner.scheme_ash" },
+        { "value": "char", "label": "t:sections.collection_banner.scheme_char" }
+      ],
+      "default": "ash"
+    }
+  ]
+}
+{% endschema %}

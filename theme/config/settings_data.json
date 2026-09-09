@@ -1,0 +1,27 @@
+{
+  "current": "Default",
+  "presets": {
+    "Default": {
+      "color_ash": "#EDE7DE",
+      "color_ash_deep": "#DDD4C7",
+      "color_char": "#17130F",
+      "color_smoke": "#6B6259",
+      "color_ember": "#E2542C",
+      "color_lime": "#B9D24A",
+      "color_heat_0": "#C8CBA6",
+      "color_heat_1": "#E8C547",
+      "color_heat_2": "#E2903B",
+      "color_heat_3": "#E2542C",
+      "color_heat_4": "#C22E22",
+      "color_heat_5": "#7A1410",
+      "font_display": "fraunces_n4",
+      "font_body": "inter_n4",
+      "container_width": 1320,
+      "radius": 2,
+      "cart_show_free_shipping_bar": true,
+      "cart_free_shipping_threshold": 75,
+      "cart_show_order_note": true,
+      "cart_show_gift_option": true
+    }
+  }
+}

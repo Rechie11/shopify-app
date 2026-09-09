@@ -1,0 +1,141 @@
+{%- comment -%}
+  Plots sauces on heat (x) against flavour profile (y). Pure CSS grid, no
+  charting library. On a product page it renders in comparison mode,
+  highlighting the current product and its two nearest neighbours.
+  See THEME_SPEC.md §3.4.
+{%- endcomment -%}
+{%- liquid
+  assign is_comparison_mode = false
+  if template.name == 'product' and product
+    assign is_comparison_mode = true
+  endif
+
+  assign matrix_collection = section.settings.collection
+  assign current_heat = product.metafields.custom.heat_level.value
+
+  assign neighbor_1 = blank
+  assign neighbor_1_distance = 999
+  assign neighbor_2 = blank
+  assign neighbor_2_distance = 999
+
+  if is_comparison_mode and current_heat != blank
+    for candidate in matrix_collection.products
+      unless candidate.id == product.id
+        assign candidate_heat = candidate.metafields.custom.heat_level.value
+        if candidate_heat != blank
+          assign distance = candidate_heat | minus: current_heat | abs
+
+          if distance < neighbor_1_distance
+            assign neighbor_2 = neighbor_1
+            assign neighbor_2_distance = neighbor_1_distance
+            assign neighbor_1 = candidate
+            assign neighbor_1_distance = distance
+          elsif distance < neighbor_2_distance
+            assign neighbor_2 = candidate
+            assign neighbor_2_distance = distance
+          endif
+        endif
+      endunless
+    endfor
+  endif
+-%}
+
+<section class="section" data-section-id="{{ section.id }}">
+  <div class="container">
+    <h2>{{ section.settings.heading }}</h2>
+    {%- if is_comparison_mode and neighbor_1 -%}
+      <p class="muted">
+        {{ 'sections.flavor_matrix.comparison_intro' | t: neighbor: neighbor_1.title }}
+      </p>
+    {%- endif -%}
+
+    <div class="flavor-matrix">
+      <div class="flavor-matrix__grid" style="grid-template-columns: 120px repeat(6, 1fr); grid-template-rows: auto repeat({{ section.blocks.size }}, auto);">
+        <div class="flavor-matrix__cell"></div>
+        {%- for h in (0..5) -%}
+          <div class="flavor-matrix__cell flavor-matrix__axis-label text-center">{{ h }}</div>
+        {%- endfor -%}
+
+        {%- for block in section.blocks -%}
+          <div class="flavor-matrix__cell flavor-matrix__axis-label">{{ block.settings.label }}</div>
+          {%- for h in (0..5) -%}
+            <div class="flavor-matrix__cell">
+              {%- for item in matrix_collection.products -%}
+                {%- liquid
+                  assign item_heat = item.metafields.custom.heat_level.value
+                  assign item_flavor = item.metafields.custom.flavor_profile.value
+                -%}
+                {%- if item_heat == h and item_flavor == block.settings.key -%}
+                  {%- liquid
+                    assign dot_class = 'flavor-matrix__dot'
+                    if is_comparison_mode and item.id == product.id
+                      assign dot_class = dot_class | append: ' flavor-matrix__dot--current'
+                    elsif is_comparison_mode and neighbor_1 and item.id == neighbor_1.id
+                      assign dot_class = dot_class | append: ' flavor-matrix__dot--neighbor'
+                    elsif is_comparison_mode and neighbor_2 and item.id == neighbor_2.id
+                      assign dot_class = dot_class | append: ' flavor-matrix__dot--neighbor'
+                    endif
+                  -%}
+                  <a href="{{ item.url }}" class="{{ dot_class }}" style="background: var(--c-heat-{{ h }});" title="{{ item.title }}">
+                    <span class="visually-hidden">{{ item.title }}</span>
+                  </a>
+                {%- endif -%}
+              {%- endfor -%}
+            </div>
+          {%- endfor -%}
+        {%- endfor -%}
+      </div>
+    </div>
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "t:sections.flavor_matrix.name",
+  "settings": [
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "t:sections.flavor_matrix.heading",
+      "default": "Find your flavour"
+    },
+    {
+      "type": "collection",
+      "id": "collection",
+      "label": "t:sections.flavor_matrix.collection"
+    }
+  ],
+  "blocks": [
+    {
+      "type": "flavor_row",
+      "name": "t:sections.flavor_matrix.blocks.flavor_row.name",
+      "settings": [
+        {
+          "type": "text",
+          "id": "key",
+          "label": "t:sections.flavor_matrix.blocks.flavor_row.key",
+          "info": "t:sections.flavor_matrix.blocks.flavor_row.key_info"
+        },
+        {
+          "type": "text",
+          "id": "label",
+          "label": "t:sections.flavor_matrix.blocks.flavor_row.label"
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "t:sections.flavor_matrix.name",
+      "blocks": [
+        { "type": "flavor_row", "settings": { "key": "smoky", "label": "Smoky" } },
+        { "type": "flavor_row", "settings": { "key": "fruity", "label": "Fruity" } },
+        { "type": "flavor_row", "settings": { "key": "citrus", "label": "Citrus" } },
+        { "type": "flavor_row", "settings": { "key": "umami", "label": "Umami" } },
+        { "type": "flavor_row", "settings": { "key": "herbal", "label": "Herbal" } },
+        { "type": "flavor_row", "settings": { "key": "sweet-heat", "label": "Sweet heat" } }
+      ]
+    }
+  ]
+}
+{% endschema %}

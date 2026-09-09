@@ -1,0 +1,147 @@
+{%- comment -%}
+  Editorial provenance block, metafield-driven with fallbacks. Block-based so
+  a merchant can add a batch per product. See THEME_SPEC.md §3.3.
+{%- endcomment -%}
+<section class="section scheme-{{ section.settings.color_scheme }}" data-section-id="{{ section.id }}">
+  <div class="container">
+    {%- if section.settings.heading != blank -%}
+      <h2>{{ section.settings.heading }}</h2>
+    {%- endif -%}
+
+    {%- for block in section.blocks -%}
+      {%- liquid
+        assign story_product = block.settings.product
+        if story_product == blank and product
+          assign story_product = product
+        endif
+
+        assign batch_number = story_product.metafields.custom.batch_number.value | default: block.settings.fallback_batch_number
+        assign pepper_origin = story_product.metafields.custom.pepper_origin.value | default: block.settings.fallback_pepper_origin
+        assign harvest_month = story_product.metafields.custom.harvest_month.value | default: block.settings.fallback_harvest_month
+        assign bottle_count = story_product.metafields.custom.bottle_count.value | default: block.settings.fallback_bottle_count
+        assign maker_note = story_product.metafields.custom.maker_note.value | default: block.settings.fallback_maker_note
+      -%}
+      <div class="batch-story" {{ block.shopify_attributes }}>
+        <div>
+          {%- if story_product.featured_image -%}
+            {%- render 'responsive-image', image: story_product.featured_image, sizes: '(min-width: 900px) 50vw, 100vw', alt: story_product.title -%}
+          {%- elsif block.settings.image -%}
+            {%- render 'responsive-image', image: block.settings.image, sizes: '(min-width: 900px) 50vw, 100vw' -%}
+          {%- endif -%}
+        </div>
+        <div>
+          {%- if batch_number != blank -%}
+            <p class="muted">{{ 'sections.batch_story.batch_label' | t: number: batch_number }}</p>
+          {%- else -%}
+            <p class="muted">{{ 'sections.batch_story.batch_unnumbered' | t }}</p>
+          {%- endif -%}
+          <h3>{{ story_product.title | default: block.settings.fallback_title }}</h3>
+
+          <div class="batch-story__facts">
+            <div>
+              <p class="batch-fact__label">{{ 'sections.batch_story.origin_label' | t }}</p>
+              <p class="batch-fact__value">
+                <span class="batch-story__map-dot" aria-hidden="true"></span>{% if pepper_origin != blank %}{{ pepper_origin }}{% else %}{{ 'sections.batch_story.unknown' | t }}{% endif %}
+              </p>
+            </div>
+            <div>
+              <p class="batch-fact__label">{{ 'sections.batch_story.harvest_label' | t }}</p>
+              <p class="batch-fact__value">{% if harvest_month != blank %}{{ harvest_month }}{% else %}{{ 'sections.batch_story.unknown' | t }}{% endif %}</p>
+            </div>
+            <div>
+              <p class="batch-fact__label">{{ 'sections.batch_story.bottle_count_label' | t }}</p>
+              <p class="batch-fact__value">{% if bottle_count != blank %}{{ bottle_count }}{% else %}{{ 'sections.batch_story.unknown' | t }}{% endif %}</p>
+            </div>
+          </div>
+
+          {%- if maker_note != blank -%}
+            <blockquote>&ldquo;{{ maker_note }}&rdquo;</blockquote>
+          {%- endif -%}
+        </div>
+      </div>
+    {%- else -%}
+      <p class="empty-state muted">{{ 'sections.batch_story.no_batches' | t }}</p>
+    {%- endfor -%}
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "t:sections.batch_story.name",
+  "settings": [
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "t:sections.batch_story.heading",
+      "default": "The batch behind the bottle"
+    },
+    {
+      "type": "select",
+      "id": "color_scheme",
+      "label": "t:sections.batch_story.color_scheme",
+      "options": [
+        { "value": "ash", "label": "t:sections.batch_story.scheme_ash" },
+        { "value": "char", "label": "t:sections.batch_story.scheme_char" },
+        { "value": "ember", "label": "t:sections.batch_story.scheme_ember" }
+      ],
+      "default": "ash"
+    }
+  ],
+  "blocks": [
+    {
+      "type": "batch",
+      "name": "t:sections.batch_story.blocks.batch.name",
+      "settings": [
+        {
+          "type": "product",
+          "id": "product",
+          "label": "t:sections.batch_story.blocks.batch.product",
+          "info": "t:sections.batch_story.blocks.batch.product_info"
+        },
+        {
+          "type": "image_picker",
+          "id": "image",
+          "label": "t:sections.batch_story.blocks.batch.image"
+        },
+        {
+          "type": "text",
+          "id": "fallback_title",
+          "label": "t:sections.batch_story.blocks.batch.fallback_title",
+          "default": "Batch 001"
+        },
+        {
+          "type": "text",
+          "id": "fallback_batch_number",
+          "label": "t:sections.batch_story.blocks.batch.fallback_batch_number"
+        },
+        {
+          "type": "text",
+          "id": "fallback_pepper_origin",
+          "label": "t:sections.batch_story.blocks.batch.fallback_pepper_origin"
+        },
+        {
+          "type": "text",
+          "id": "fallback_harvest_month",
+          "label": "t:sections.batch_story.blocks.batch.fallback_harvest_month"
+        },
+        {
+          "type": "text",
+          "id": "fallback_bottle_count",
+          "label": "t:sections.batch_story.blocks.batch.fallback_bottle_count"
+        },
+        {
+          "type": "textarea",
+          "id": "fallback_maker_note",
+          "label": "t:sections.batch_story.blocks.batch.fallback_maker_note"
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "t:sections.batch_story.name",
+      "blocks": [{ "type": "batch" }]
+    }
+  ]
+}
+{% endschema %}

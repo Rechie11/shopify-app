@@ -1,0 +1,49 @@
+{%- comment -%}
+  Radial heat gauge with a plain-language comparator.
+  Accepts: heat_level (0-5, required)
+{%- endcomment -%}
+{%- liquid
+  assign level = heat_level | default: 0
+  assign pct = level | plus: 1 | times: 1.0 | divided_by: 6
+  assign circumference = 251.2
+  assign fill_length = pct | times: circumference
+
+  case level
+    when 0
+      assign comparator_key = 'products.product.heat_comparator_0'
+      assign color = settings.color_heat_0
+    when 1
+      assign comparator_key = 'products.product.heat_comparator_1'
+      assign color = settings.color_heat_1
+    when 2
+      assign comparator_key = 'products.product.heat_comparator_2'
+      assign color = settings.color_heat_2
+    when 3
+      assign comparator_key = 'products.product.heat_comparator_3'
+      assign color = settings.color_heat_3
+    when 4
+      assign comparator_key = 'products.product.heat_comparator_4'
+      assign color = settings.color_heat_4
+    else
+      assign comparator_key = 'products.product.heat_comparator_5'
+      assign color = settings.color_heat_5
+  endcase
+-%}
+<div class="heat-dial">
+  <svg class="heat-dial__gauge" viewBox="0 0 100 100" role="img" aria-label="{{ 'products.product.heat_level_label' | t: level: level }}">
+    <circle cx="50" cy="50" r="40" fill="none" stroke="var(--c-ash-deep)" stroke-width="10"/>
+    <circle
+      cx="50" cy="50" r="40" fill="none"
+      stroke="{{ color }}"
+      stroke-width="10"
+      stroke-linecap="round"
+      stroke-dasharray="{{ fill_length }} {{ circumference }}"
+      transform="rotate(-90 50 50)"
+    />
+    <text x="50" y="56" text-anchor="middle" font-size="28" font-weight="700" fill="var(--c-char)">{{ level }}</text>
+  </svg>
+  <div>
+    <p class="heat-dial__value">{{ 'products.product.heat_scale_label' | t }}</p>
+    <p class="heat-dial__comparator">{{ comparator_key | t }}</p>
+  </div>
+</div>
