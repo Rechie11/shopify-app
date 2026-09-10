@@ -24,9 +24,9 @@
       <div class="batch-story" {{ block.shopify_attributes }}>
         <div>
           {%- if story_product.featured_image -%}
-            {%- render 'responsive-image', image: story_product.featured_image, sizes: '(min-width: 900px) 50vw, 100vw', alt: story_product.title -%}
+            {%- render 'responsive-image', image: story_product.featured_image, sizes: '(min-width: 900px) 50vw, 100vw', alt: story_product.title, class: 'batch-story__media' -%}
           {%- elsif block.settings.image -%}
-            {%- render 'responsive-image', image: block.settings.image, sizes: '(min-width: 900px) 50vw, 100vw' -%}
+            {%- render 'responsive-image', image: block.settings.image, sizes: '(min-width: 900px) 50vw, 100vw', class: 'batch-story__media' -%}
           {%- endif -%}
         </div>
         <div>

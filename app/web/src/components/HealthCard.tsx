@@ -5,12 +5,22 @@ function pct(value: string | null): number {
   return value == null ? 0 : Math.max(0, Math.min(100, parseFloat(value)));
 }
 
+function bandFor(value: number): 'healthy' | 'watch' | 'at_risk' {
+  if (value >= 75) return 'healthy';
+  if (value >= 50) return 'watch';
+  return 'at_risk';
+}
+
 function BreakdownRow({ label, value }: { label: string; value: string | null }) {
+  const numeric = pct(value);
   return (
     <div className="score-breakdown__row">
       <span className="muted">{label}</span>
       <div className="score-breakdown__bar">
-        <div className="score-breakdown__bar-fill" style={{ width: `${pct(value)}%` }} />
+        <div
+          className={`score-breakdown__bar-fill score-breakdown__bar-fill--${bandFor(numeric)}`}
+          style={{ width: `${numeric}%` }}
+        />
       </div>
       <span>{value == null ? '—' : Math.round(parseFloat(value))}</span>
     </div>
@@ -52,7 +62,9 @@ export function HealthCard({ publicId }: { publicId: string }) {
       </h2>
 
       <div className="score-gauge">
-        <span className="score-gauge__value">{Math.round(parseFloat(latest.score))}</span>
+        <span className={`score-gauge__value score-gauge__value--${latest.band}`}>
+          {Math.round(parseFloat(latest.score))}
+        </span>
         <span
           className={`badge badge--${latest.band === 'at_risk' ? 'archived' : latest.band === 'watch' ? 'paused' : 'active'}`}
         >

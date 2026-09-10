@@ -59,7 +59,16 @@ export function BundleList() {
                 <tr
                   key={bundle.publicId}
                   className="clickable"
+                  tabIndex={0}
+                  role="button"
+                  aria-label={`Open ${bundle.title}`}
                   onClick={() => navigate(`/bundles/${bundle.publicId}`)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault();
+                      navigate(`/bundles/${bundle.publicId}`);
+                    }
+                  }}
                 >
                   <td>{bundle.title}</td>
                   <td>

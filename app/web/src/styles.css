@@ -16,8 +16,21 @@
   --c-risk-text: #b32318;
   --c-neutral-bg: #eeeeef;
   --c-neutral-text: #4a4a4a;
+  --c-focus-ring: #005fcc;
+  --shadow-card: 0 0 0 1px rgba(0, 0, 0, 0.05), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+  --shadow-card-hover: 0 0 0 1px rgba(0, 0, 0, 0.06), 0 2px 6px 0 rgba(0, 0, 0, 0.08);
+  --ease: cubic-bezier(0.2, 0.7, 0.3, 1);
   --radius: 8px;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
 }
 
 * {
@@ -52,16 +65,36 @@ body {
 }
 
 .app-nav__link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
   color: var(--c-text-muted);
   text-decoration: none;
   font-size: 14px;
   padding: 6px 4px;
   border-bottom: 2px solid transparent;
+  transition:
+    color 0.15s var(--ease),
+    border-color 0.15s var(--ease);
+}
+
+.app-nav__link:hover {
+  color: var(--c-text);
 }
 
 .app-nav__link.active {
   color: var(--c-text);
   border-bottom-color: var(--c-primary);
+}
+
+.app-nav__link:focus-visible,
+.button:focus-visible,
+.table tr.clickable:focus-visible,
+.field input:focus-visible,
+.field select:focus-visible,
+.field textarea:focus-visible {
+  outline: 2px solid var(--c-focus-ring);
+  outline-offset: 2px;
 }
 
 .page {
@@ -89,19 +122,27 @@ body {
   border: 1px solid var(--c-border);
   border-radius: var(--radius);
   padding: 20px;
+  box-shadow: var(--shadow-card);
 }
 
 .button {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 6px;
+  min-height: 36px;
   border: 1px solid var(--c-border);
   background: var(--c-surface);
   color: var(--c-text);
   border-radius: 6px;
   padding: 8px 14px;
   font-size: 14px;
+  text-decoration: none;
   cursor: pointer;
+  transition:
+    background-color 0.15s var(--ease),
+    border-color 0.15s var(--ease),
+    box-shadow 0.15s var(--ease);
 }
 
 .button:hover {
@@ -156,6 +197,7 @@ body {
 
 .table tr.clickable {
   cursor: pointer;
+  transition: background-color 0.15s var(--ease);
 }
 
 .table tr.clickable:hover {
@@ -253,12 +295,25 @@ body {
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 10px 0;
+  padding: 10px 16px;
   border-bottom: 1px solid var(--c-border);
+  border-left: 3px solid transparent;
 }
 
 .item-row:last-child {
   border-bottom: none;
+}
+
+.item-row--severity-critical {
+  border-left-color: var(--c-risk-text);
+}
+
+.item-row--severity-warning {
+  border-left-color: var(--c-watch-text);
+}
+
+.item-row--severity-info {
+  border-left-color: var(--c-neutral-text);
 }
 
 .item-row__title {
@@ -318,6 +373,12 @@ body {
   flex-direction: column;
   align-items: flex-start;
   gap: 4px;
+  border-top: 3px solid var(--c-border);
+  transition: box-shadow 0.15s var(--ease);
+}
+
+.kpi-tile:hover {
+  box-shadow: var(--shadow-card-hover);
 }
 
 .kpi-tile__value {
@@ -328,6 +389,33 @@ body {
 .kpi-tile__label {
   font-size: 13px;
   color: var(--c-text-muted);
+}
+
+.kpi-tile--healthy {
+  border-top-color: var(--c-success-text);
+}
+
+.kpi-tile--healthy .kpi-tile__value,
+.kpi-tile--healthy .kpi-tile__label {
+  color: var(--c-success-text);
+}
+
+.kpi-tile--watch {
+  border-top-color: var(--c-watch-text);
+}
+
+.kpi-tile--watch .kpi-tile__value,
+.kpi-tile--watch .kpi-tile__label {
+  color: var(--c-watch-text);
+}
+
+.kpi-tile--at-risk {
+  border-top-color: var(--c-risk-text);
+}
+
+.kpi-tile--at-risk .kpi-tile__value,
+.kpi-tile--at-risk .kpi-tile__label {
+  color: var(--c-risk-text);
 }
 
 .badge--severity-critical {
@@ -357,6 +445,18 @@ body {
   font-weight: 700;
 }
 
+.score-gauge__value--healthy {
+  color: var(--c-success-text);
+}
+
+.score-gauge__value--watch {
+  color: var(--c-watch-text);
+}
+
+.score-gauge__value--at_risk {
+  color: var(--c-risk-text);
+}
+
 .score-breakdown {
   display: flex;
   flex-direction: column;
@@ -382,6 +482,19 @@ body {
 .score-breakdown__bar-fill {
   height: 100%;
   background: var(--c-primary);
+  transition: width 0.2s var(--ease);
+}
+
+.score-breakdown__bar-fill--healthy {
+  background: var(--c-success-text);
+}
+
+.score-breakdown__bar-fill--watch {
+  background: var(--c-watch-text);
+}
+
+.score-breakdown__bar-fill--at_risk {
+  background: var(--c-risk-text);
 }
 
 .sparkline {

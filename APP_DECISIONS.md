@@ -263,6 +263,46 @@ Worth naming before anyone else does:
 
 ---
 
+## 6.1 UI/UX audit fixes (Day 6)
+
+A verification pass against WCAG and the app's own design tokens turned up a few real gaps, fixed
+before submission:
+
+- **Bundle list was mouse-only.** `BundleList.tsx` navigated to a bundle from a `<tr onClick>` with
+  no keyboard path — no `tabIndex`, no key handler, no accessible role. A screen-reader or
+  keyboard-only reviewer could not open a single bundle. Fixed with `tabIndex={0}`,
+  `role="button"`, an `aria-label`, and an Enter/Space handler, plus a visible `:focus-visible`
+  ring in `styles.css`.
+- **The Health Score didn't read as healthy/watch/at-risk at a glance.** The 40px score number and
+  the four component bars (`HealthCard.tsx`) rendered in the same neutral colour regardless of
+  band — the badge next to the number carried all the signal. Both now colour by band using the
+  same 75/50 thresholds as the composite score, so the number itself is legible from across a
+  room, which matters for a feature whose whole premise is "coach, don't just report."
+- **No focus-visible styling, no interaction transitions, flat card depth.** `.button`,
+  `.app-nav__link`, table rows, and form fields had no custom focus ring (relying on the browser
+  default only) and no hover/state transitions — the SPA felt static compared to the theme, which
+  already had this. Added a shared `--c-focus-ring` treatment, 150ms transitions on interactive
+  elements, and a subtle `box-shadow` on `.card` for depth, `prefers-reduced-motion` respected.
+
+A live screenshot review turned up two more, both real bugs rather than taste:
+
+- **The Healthy/Watch/At-risk KPI tiles on the dashboard referenced CSS classes that didn't
+  exist** (`badge--healthy-text` and siblings, never defined in `styles.css`) — so all three
+  rendered in flat gray no matter the count, silently. Replaced with real `kpi-tile--healthy/
+  --watch/--at-risk` modifiers that color both the number and label and add a status-colored top
+  border, matching the treatment already given to the Health Score.
+- **The "View bundles" button was underlined.** It's a `react-router` `<Link>` styled with
+  `.button`, but `.button` never set `text-decoration: none`, so it fell back to the browser's
+  default anchor underline. One-line fix.
+- Added small inline-SVG icons to the top nav (Dashboard/Bundles) and a severity-colored left
+  border on alert rows, for the visual hierarchy a text-only nav and flat activity list were
+  missing.
+
+None of this touches the scoring math, the API contracts, or the schema — it's presentation-layer
+only, verified with `npm run typecheck` and `npm run lint` after each change.
+
+---
+
 ## 7. Document map
 
 | File               | Contents                                                                |

@@ -63,6 +63,12 @@ can rebrand in the theme editor without touching CSS.
 
   --radius: 2px; /* nearly square — this brand is not soft */
   --ease: cubic-bezier(0.2, 0.7, 0.3, 1);
+
+  /* Depth — added in the Day 6 visual audit (§11). Warm-toned, not cold
+     gray, so raised surfaces read as part of this palette, not a
+     generic-admin shadow pasted on top of it. */
+  --shadow-soft: 0 1px 2px rgb(23 19 15 / 0.04), 0 4px 16px rgb(23 19 15 / 0.06);
+  --shadow-soft-hover: 0 2px 4px rgb(23 19 15 / 0.06), 0 8px 24px rgb(23 19 15 / 0.09);
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -321,7 +327,9 @@ with a metric-matched fallback stack.
 - **Contrast:** every token pair verified ≥ 4.5:1 for text, ≥ 3:1 for UI boundaries. `--c-heat-1`
   (#E8C547) fails on `--c-ash`, so it is used as a fill with `--c-char` text on top, never as text
   on the page ground. Colour never carries meaning alone — heat tiers always pair a colour with a
-  numeral and a label.
+  numeral and a label. `.scheme-ember` (Day 6 audit) was found pairing `--c-ash` text on `--c-ember`
+  at 3.09:1 — an unused utility class, fixed to `--c-char` text (4.87:1) before it could be picked
+  up by a future section.
 - **Keyboard:** the Flight Builder is fully operable without a mouse. Arrow keys move along the
   sauce rail, Enter/Space adds to the next open slot, Delete clears a slot, Escape exits the rail.
   A visible `:focus-visible` ring in `--c-ember` on every interactive element.
@@ -375,3 +383,74 @@ theme/
 All customer-facing strings go through `locales/en.default.json` and `{{ 'key' | t }}`. Hardcoded
 English in Liquid is the most common avoidable mark-down on a Shopify theme review, and it costs
 nothing to do correctly from the first section.
+
+---
+
+## 11. Day 6 visual audit — what changed
+
+A screenshot review of the storefront as configured (no merchant hero image uploaded yet, three
+mismatched seed-data product photos) turned up real defects, not just taste calls. Fixed in
+`base.css` and `css-variables.liquid` only — no Liquid template structure, no JS behaviour, no
+schema changed.
+
+- **Hero rendered as a bare gray-to-black gradient with nothing behind it.** No hero image is
+  configured in the demo `settings_data.json`, so `.ember-hero__media` had no photo and nothing
+  else — just the fixed readability scrim sitting on an empty div.
+  First fix attempt was a soft radial ember-to-char gradient — wrong call, caught on review: it's
+  the only blurred colour-blob decoration anywhere in the theme, and this brand's tokens are
+  explicit about not being soft (`--radius: 2px`, §1.1). Replaced with what the rest of the theme
+  actually does — flat `--c-char` — plus a 5px hard-edged spine of the six heat-scale colours down
+  the left edge, the one motif this theme repeats everywhere (badges, filter rail, product dial,
+  Flight Builder curve). The spine is a permanent signature on every hero, photo or none, not just
+  an empty-state patch. A real merchant photo still fully covers the flat fallback via
+  `object-fit: cover`.
+- **The Flight Builder's balance-meter dots were invisible at rest.** `--fill: 0` resolved the
+  conic-gradient to 100% `--c-ash`, which is the same colour as the panel it sits on — four dots
+  that exist but cannot be seen until a bottle is picked. Added a permanent `--c-smoke` ring so the
+  meter reads as "four things to fill," not empty space.
+- **Filled slots and pale heat swatches had no edge definition.** `--c-heat-0`/`--c-heat-1` are
+  close in value to `--c-ash-deep`, the slot chip's own background, so a picked Mild or Warm bottle
+  nearly vanished into its own chip. Added a 1px inset ring on `.heat-rail__flame` inside filled
+  slots, plus a hover border-color shift and the new `--shadow-soft` for a visibly "raised" chip.
+- **Flat card boundaries throughout.** `.card`, `.sauce-card__media`, and
+  `.flight-builder__review` all sit at `--c-ash-deep` against a `--c-ash` page ground — a ~2%
+  lightness difference, too close to read as a distinct surface without a shadow doing the work.
+  Added `--shadow-soft` / `--shadow-soft-hover` (new tokens, §1.1) to all three.
+- **Mismatched seed-data product photography.** The three demo products currently mix a line-art
+  illustration, an unrelated food photo, and a stock pepper image on three different baked-in
+  backgrounds — a CSS filter cannot fix that; it needs consistent product photography, named here
+  rather than silently left. What CSS *can* do: added a shared inset vignette to
+  `.sauce-card__media` (`::after`, a bottom-edge shadow) so every card gets the same frame
+  treatment regardless of what's inside it — real mitigation, not a full fix. **Before demo day:**
+  replace the seed images with either consistent product photography or a single illustration
+  style across all SKUs.
+
+- **The flight price showed `$$0.00` on first paint.** Two independent sources each added a
+  currency symbol: `.flight-builder__price-total::before` in CSS prepends `$` (JS's `formatMoney()`
+  deliberately returns a plain, currency-agnostic decimal so it doesn't guess at the shop's money
+  format), but the initial Liquid value used `{{ 0 | money }}`, which already includes the symbol.
+  Before the custom element's first price computation replaces it, both fire at once. Changed the
+  initial value to `{{ 0 | money_without_currency }}` so it matches the plain-decimal contract the
+  CSS `$` prefix and `formatMoney()` already agreed on.
+- **"Build a flight," the hero's secondary CTA, was invisible.** `.button` hardcodes
+  `color: var(--c-char)` (near-black) regardless of context. `.button--ghost` overrode the border
+  to `currentColor` but never touched `color`, so it stayed near-black text on a near-black border
+  — invisible against the hero's dark scrim, though fine against the cream page everywhere else
+  it's used (cart, product page, featured collection). Added `color: inherit` to `.button--ghost`,
+  so it now takes its color from whatever surface it's on: `--c-char` from `body` everywhere it
+  already worked, `--c-ash` inside `.ember-hero`, which sets its own light text color for exactly
+  this reason.
+- **Primary buttons went near-invisible on hover.** `.button--primary` sets `color: var(--c-char)`
+  for its normal ember-background state. `.button--primary:hover` swaps the background to
+  `--c-char` but never reset the text color, so hovering "Shop the shelf" produced near-black text
+  on a near-black background — the exact inverse of the ghost-button bug above. Added
+  `color: var(--c-ash)` to `.button--primary:hover`.
+- **Batch Story's image could take over the whole page.** `responsive-image.liquid` renders the
+  source image at its own native width/height with no cropping unless the caller passes a `class`
+  that constrains it — `sauce-card` does this (`aspect-ratio: 4/5`, `object-fit: cover`);
+  `batch-story.liquid` never did. A tall/narrow source illustration (or any oddly-proportioned
+  image a merchant uploads) rendered at its own extreme intrinsic aspect ratio, stretching the
+  whole section's height to match. Added a `batch-story__media` class with the same
+  `aspect-ratio: 4/5` / `object-fit: cover` treatment already proven on product cards.
+
+Verified with `shopify theme check` (41 files, 0 offenses) after each change.

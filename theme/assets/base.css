@@ -185,7 +185,7 @@ p {
 }
 .scheme-ember {
   background: var(--c-ember);
-  color: var(--c-ash);
+  color: var(--c-char);
 }
 
 /* ---------- Buttons ---------- */
@@ -226,9 +226,15 @@ p {
 .button--primary:hover {
   background: var(--c-char);
   border-color: var(--c-char);
+  color: var(--c-ash);
 }
 
 .button--ghost {
+  /* Ghost buttons must read against whatever surface they're dropped on -
+     the cream page (char text), or the hero's dark scrim (ash text). The
+     base .button hardcodes char, which made this invisible - char text on
+     a char-dark hero - so it takes color from context instead. */
+  color: inherit;
   border-color: currentColor;
   background: transparent;
 }
@@ -253,6 +259,7 @@ p {
   background: var(--c-ash-deep);
   border-radius: var(--radius);
   padding: var(--s-6);
+  box-shadow: var(--shadow-soft);
 }
 
 /* ---------- Badges / heat ---------- */
@@ -525,6 +532,12 @@ p {
   overflow: hidden;
   border-radius: var(--radius);
   background: var(--c-ash-deep);
+  box-shadow: var(--shadow-soft);
+  transition: box-shadow 0.2s var(--ease);
+}
+
+.sauce-card:hover .sauce-card__media {
+  box-shadow: var(--shadow-soft-hover);
 }
 
 .sauce-card__media img {
@@ -536,6 +549,17 @@ p {
 
 .sauce-card:hover .sauce-card__media img {
   transform: scale(1.03);
+}
+
+/* A shared edge vignette so mismatched source photography (illustration,
+   food photo, product shot) still reads as one consistent card frame
+   instead of each card looking like a different website. */
+.sauce-card__media::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  box-shadow: inset 0 -40px 32px -24px rgb(23 19 15 / 0.28);
+  pointer-events: none;
 }
 
 .sauce-card__heat {
@@ -644,6 +668,19 @@ p {
   display: grid;
   gap: var(--s-8);
   align-items: center;
+}
+
+/* responsive-image.liquid renders the source image's own native
+   width/height with no cropping - fine for normally-proportioned photos,
+   but a tall/narrow illustration (or any odd source asset) renders at its
+   own extreme aspect ratio and blows out the whole section's height.
+   Capped and cropped the same way .sauce-card__media already is. */
+.batch-story__media {
+  width: 100%;
+  aspect-ratio: 4 / 5;
+  object-fit: cover;
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-soft);
 }
 
 @media (min-width: 900px) {
@@ -766,6 +803,38 @@ p {
   position: absolute;
   inset: 0;
   z-index: 0;
+  /* Fallback when no merchant image/video is set, so the hero is a
+     deliberate flat surface instead of an empty gray-to-black scrim with
+     nothing behind it. Flat --c-char, not a gradient - this theme has no
+     soft blurred-mesh decoration anywhere else (--radius is 2px on
+     purpose, see §1.1), so a colour-blob background would be the one
+     un-branded thing on the page. A real photo (object-fit: cover) fully
+     covers this; it only shows through on an unconfigured hero. */
+  background: var(--c-char);
+}
+
+/* The heat scale is this theme's one recurring motif - product badges,
+   the collection filter rail, the product dial, the Flight Builder curve.
+   A thin hard-edged spine of the same six colours is a permanent signature
+   on every hero (photo or none), not just an empty-state fallback - one
+   more place the same visual language shows up. */
+.ember-hero__media::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  width: 5px;
+  z-index: 2;
+  background: linear-gradient(
+    to bottom,
+    var(--c-heat-0) 0% 16.66%,
+    var(--c-heat-1) 16.66% 33.33%,
+    var(--c-heat-2) 33.33% 50%,
+    var(--c-heat-3) 50% 66.66%,
+    var(--c-heat-4) 66.66% 83.33%,
+    var(--c-heat-5) 83.33% 100%
+  );
 }
 
 .ember-hero__media img,
@@ -1075,13 +1144,29 @@ flight-builder {
   border-radius: var(--radius);
   background: transparent;
   cursor: default;
+  transition:
+    border-color 0.15s var(--ease),
+    box-shadow 0.15s var(--ease);
 }
 
 .flight-builder__slot--filled {
   border-style: solid;
   border-color: var(--c-char);
   background: var(--c-ash-deep);
+  box-shadow: var(--shadow-soft);
   cursor: pointer;
+}
+
+.flight-builder__slot--filled:hover {
+  border-color: var(--c-ember);
+}
+
+.flight-builder__slot--filled .heat-rail__flame {
+  flex-shrink: 0;
+  /* Pale heat tiers (Mild, Warm) are close in value to --c-ash-deep, the
+     slot's own background - an edge ring keeps the swatch legible instead
+     of nearly disappearing into the chip. */
+  box-shadow: inset 0 0 0 1px rgb(23 19 15 / 0.15);
 }
 
 .flight-builder__slot--sold-out {
@@ -1102,6 +1187,7 @@ flight-builder {
   background: var(--c-ash-deep);
   border-radius: var(--radius);
   padding: var(--s-6);
+  box-shadow: var(--shadow-soft);
 }
 
 .flight-builder__heat-curve {
@@ -1122,7 +1208,10 @@ flight-builder {
   width: 16px;
   height: 16px;
   border-radius: 50%;
-  background: conic-gradient(var(--c-ember) calc(var(--fill) * 1%), var(--c-ash) 0);
+  /* An empty ring at rest (--fill: 0) still needs to read as "a meter that
+     exists," not vanish into the panel background it shares a color with. */
+  box-shadow: inset 0 0 0 2px var(--c-smoke);
+  background: conic-gradient(var(--c-ember) calc(var(--fill) * 1%), transparent 0);
 }
 
 .flight-builder__coaching {

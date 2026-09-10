@@ -67,17 +67,17 @@ export function Dashboard() {
           <span className="kpi-tile__value">{bundleCounts.active}</span>
           <span className="kpi-tile__label">Active bundles</span>
         </div>
-        <div className="card kpi-tile">
+        <div className="card kpi-tile kpi-tile--healthy">
           <span className="kpi-tile__value">{scoreDistribution.healthy}</span>
-          <span className="kpi-tile__label badge--healthy-text">Healthy</span>
+          <span className="kpi-tile__label">Healthy</span>
         </div>
-        <div className="card kpi-tile">
+        <div className="card kpi-tile kpi-tile--watch">
           <span className="kpi-tile__value">{scoreDistribution.watch}</span>
-          <span className="kpi-tile__label badge--watch-text">Watch</span>
+          <span className="kpi-tile__label">Watch</span>
         </div>
-        <div className="card kpi-tile">
+        <div className="card kpi-tile kpi-tile--at-risk">
           <span className="kpi-tile__value">{scoreDistribution.at_risk}</span>
-          <span className="kpi-tile__label badge--at-risk-text">At risk</span>
+          <span className="kpi-tile__label">At risk</span>
         </div>
       </div>
 
@@ -87,7 +87,7 @@ export function Dashboard() {
           <p className="empty-state">No open alerts. Everything is healthy.</p>
         )}
         {openAlerts.map((alert) => (
-          <div className="item-row" key={alert.id}>
+          <div className={`item-row item-row--severity-${alert.severity}`} key={alert.id}>
             <span className={`badge badge--severity-${alert.severity}`}>{alert.severity}</span>
             <div style={{ flex: 1 }}>
               <div className="item-row__title">{alert.title}</div>
