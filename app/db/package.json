@@ -11,9 +11,9 @@
   },
   "scripts": {
     "db:generate": "drizzle-kit generate",
-    "db:migrate": "tsx src/migrate.ts",
+    "db:migrate": "tsx --env-file=../../.env src/migrate.ts",
     "db:studio": "drizzle-kit studio",
-    "db:reset": "tsx src/reset.ts",
+    "db:reset": "tsx --env-file=../../.env src/reset.ts",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {

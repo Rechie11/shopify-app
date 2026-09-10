@@ -603,7 +603,10 @@ p {
   display: flex;
   gap: var(--s-2);
   overflow-x: auto;
-  padding-bottom: var(--s-2);
+  /* 4px on every side (not just bottom) so the focus-visible ring - which
+     paints 2px outline + 2px offset outside each button - isn't sliced off
+     by this scroll container's clipping edge. */
+  padding: 4px 4px var(--s-2);
 }
 
 .heat-rail__item {

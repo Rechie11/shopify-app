@@ -1,7 +1,11 @@
 {
   "sections": {
     "hero": {
-      "type": "ember-hero"
+      "type": "ember-hero",
+      "settings": {
+        "cta1_url": "/collections/all-sauces",
+        "cta2_url": "/#flight-builder"
+      }
     },
     "heat_rail": {
       "type": "heat-index-rail",

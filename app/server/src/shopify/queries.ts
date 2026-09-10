@@ -46,6 +46,62 @@ export interface ProductSearchResult {
   };
 }
 
+// Used only by seed.ts to read back the 18 sauces (with cost and the two
+// classification metafields) that Day 0 seeded by hand, so demo bundles
+// are built from real product/variant ids instead of invented ones.
+export const PRODUCTS_FOR_SEED_QUERY = /* GraphQL */ `
+  query ProductsForSeed($first: Int!) {
+    products(first: $first, sortKey: TITLE) {
+      nodes {
+        id
+        handle
+        title
+        featuredImage {
+          url
+        }
+        heatLevel: metafield(namespace: "custom", key: "heat_level") {
+          value
+        }
+        flavorProfile: metafield(namespace: "custom", key: "flavor_profile") {
+          value
+        }
+        variants(first: 1) {
+          nodes {
+            id
+            price
+            inventoryItem {
+              id
+              unitCost {
+                amount
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+`;
+
+export interface ProductsForSeedResult {
+  products: {
+    nodes: Array<{
+      id: string;
+      handle: string;
+      title: string;
+      featuredImage: { url: string } | null;
+      heatLevel: { value: string } | null;
+      flavorProfile: { value: string } | null;
+      variants: {
+        nodes: Array<{
+          id: string;
+          price: string;
+          inventoryItem: { id: string; unitCost: { amount: string } | null };
+        }>;
+      };
+    }>;
+  };
+}
+
 export const DISCOUNT_AUTOMATIC_BASIC_CREATE_MUTATION = /* GraphQL */ `
   mutation DiscountAutomaticBasicCreate($automaticBasicDiscount: DiscountAutomaticBasicInput!) {
     discountAutomaticBasicCreate(automaticBasicDiscount: $automaticBasicDiscount) {
@@ -84,6 +140,25 @@ export const DISCOUNT_AUTOMATIC_DEACTIVATE_MUTATION = /* GraphQL */ `
 export interface DiscountAutomaticDeactivateResult {
   discountAutomaticDeactivate: {
     automaticDiscountNode: { id: string } | null;
+    userErrors: Array<{ field: string[] | null; message: string }>;
+  };
+}
+
+export const DISCOUNT_AUTOMATIC_DELETE_MUTATION = /* GraphQL */ `
+  mutation DiscountAutomaticDelete($id: ID!) {
+    discountAutomaticDelete(id: $id) {
+      deletedAutomaticDiscountId
+      userErrors {
+        field
+        message
+      }
+    }
+  }
+`;
+
+export interface DiscountAutomaticDeleteResult {
+  discountAutomaticDelete: {
+    deletedAutomaticDiscountId: string | null;
     userErrors: Array<{ field: string[] | null; message: string }>;
   };
 }

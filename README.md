@@ -121,11 +121,21 @@ shopify theme push --unpublished                       # upload as an unpublishe
 - **One component engineered to sit ~6 days from stock-out**, so the at-risk alert, the limiting
   variant, and the swap recommendation all render immediately
 
+`npm run seed` reads the 18 products back from Shopify over the Admin API, so it needs a shop
+that has already completed installation (a saved, decryptable access token). It's also fully
+re-runnable: it removes any bundles/discounts/metrics from a prior run before recreating them, so
+running it twice in a row produces the identical demo state both times.
+
 To reset:
 
 ```bash
 npm run db:reset      # drop, migrate, seed
 ```
+
+**`db:reset` drops the `shops` table along with everything else**, which deletes the saved access
+token. `npm run seed` (chained at the end of `db:reset`) will fail with a clear message if it can't
+find one - if that happens, open Bundle Studio once in the Shopify admin (this completes token
+exchange and re-creates the `shops` row), then run `npm run seed` again on its own.
 
 ---
 
