@@ -231,7 +231,9 @@ export function BundleEditor() {
                 type="number"
                 min={1}
                 value={minItems}
-                onChange={(e) => setMinItems(Number(e.target.value))}
+                onChange={(e) => {
+                  if (!Number.isNaN(e.target.valueAsNumber)) setMinItems(e.target.valueAsNumber);
+                }}
               />
             </div>
             <div className="field">
@@ -241,7 +243,9 @@ export function BundleEditor() {
                 type="number"
                 min={1}
                 value={maxItems}
-                onChange={(e) => setMaxItems(Number(e.target.value))}
+                onChange={(e) => {
+                  if (!Number.isNaN(e.target.valueAsNumber)) setMaxItems(e.target.valueAsNumber);
+                }}
               />
             </div>
           </div>
@@ -294,7 +298,9 @@ export function BundleEditor() {
               type="number"
               min={1}
               value={minItems}
-              onChange={(e) => setMinItems(Number(e.target.value))}
+              onChange={(e) => {
+                if (!Number.isNaN(e.target.valueAsNumber)) setMinItems(e.target.valueAsNumber);
+              }}
             />
           </div>
           <div className="field">
@@ -304,7 +310,9 @@ export function BundleEditor() {
               type="number"
               min={1}
               value={maxItems}
-              onChange={(e) => setMaxItems(Number(e.target.value))}
+              onChange={(e) => {
+                if (!Number.isNaN(e.target.valueAsNumber)) setMaxItems(e.target.valueAsNumber);
+              }}
             />
           </div>
         </div>
@@ -370,7 +378,10 @@ export function BundleEditor() {
               min={1}
               style={{ width: 70 }}
               value={tier.minQuantity}
-              onChange={(e) => updateTier(i, { minQuantity: Number(e.target.value) })}
+              onChange={(e) => {
+                if (!Number.isNaN(e.target.valueAsNumber))
+                  updateTier(i, { minQuantity: e.target.valueAsNumber });
+              }}
             />
             <span className="muted">get</span>
             <input
@@ -379,7 +390,10 @@ export function BundleEditor() {
               max={100}
               style={{ width: 70 }}
               value={tier.discountBps / 100}
-              onChange={(e) => updateTier(i, { discountBps: Number(e.target.value) * 100 })}
+              onChange={(e) => {
+                if (!Number.isNaN(e.target.valueAsNumber))
+                  updateTier(i, { discountBps: e.target.valueAsNumber * 100 });
+              }}
             />
             <span className="muted">% off</span>
             <div style={{ flex: 1 }} />

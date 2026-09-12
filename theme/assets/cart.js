@@ -27,6 +27,31 @@ function updateHeaderCartCount(itemCount) {
   if (badge) badge.textContent = String(itemCount);
 }
 
+// Cart AJAX responses return total_price as plain integer cents, not a
+// pre-formatted string - Intl handles the currency symbol/format correctly
+// without the theme guessing at the shop's money_format. See flight-pricing.js
+// for the same "don't guess at currency" principle applied storefront-wide.
+function formatMoney(cents, currency) {
+  return new Intl.NumberFormat(undefined, { style: 'currency', currency }).format(cents / 100);
+}
+
+function updateSubtotal(cart) {
+  const subtotalEl = document.querySelector('[data-cart-subtotal]');
+  if (!subtotalEl) return;
+  subtotalEl.textContent = formatMoney(cart.total_price, cart.currency);
+}
+
+// Same gap as the subtotal: a single line's own total (unit price *
+// quantity) was rendered once at page load and never refreshed after a
+// quantity change - only the quantity number itself updated.
+function updateLinePrice(cart, key) {
+  const line = document.querySelector(`[data-cart-line][data-line-key="${key}"]`);
+  const priceEl = line?.querySelector('[data-line-price]');
+  const item = cart.items.find((i) => i.key === key);
+  if (!priceEl || !item) return;
+  priceEl.textContent = formatMoney(item.final_line_price, cart.currency);
+}
+
 function initQuantityControls() {
   document.querySelectorAll('[data-cart-line]').forEach((line) => {
     const key = line.getAttribute('data-line-key');
@@ -42,9 +67,12 @@ function initQuantityControls() {
       try {
         const cart = await changeQuantity(key, next);
         updateHeaderCartCount(cart.item_count);
+        updateSubtotal(cart);
         window.EmberAsh?.announce?.(`Quantity updated to ${next}`);
         if (next === 0) {
           line.remove();
+        } else {
+          updateLinePrice(cart, key);
         }
       } catch {
         valueEl.textContent = String(current);
@@ -70,6 +98,7 @@ function initFlightRemoval() {
       try {
         const cart = await updateLines(updates);
         updateHeaderCartCount(cart.item_count);
+        updateSubtotal(cart);
         window.EmberAsh?.announce?.('Flight removed from cart');
         group?.remove();
         if (cart.item_count === 0) window.location.reload();

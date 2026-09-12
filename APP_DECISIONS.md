@@ -1,7 +1,7 @@
 # APP_DECISIONS.md
 
 **Ember & Ash** — custom Shopify theme + **Bundle Studio** — embedded Shopify admin app
-Cherry Anne Dagunan · September 2026
+Rechie Dagunan · September 2026
 
 > This is the required submission document. It covers the store concept, the app idea, the key
 > architecture and schema decisions, the tradeoffs I accepted, and what I would build next.
@@ -239,7 +239,17 @@ nothing and does not require a framework change.
 8. **OpenTelemetry tracing** across webhook → job → Admin API, plus alerting on dead-letter depth.
 9. **Multi-currency and multi-location inventory.** Days-of-cover currently sums across locations;
    a merchant fulfilling from two warehouses needs it per-location.
-10. **Full E2E suite in CI** against a seeded dev store, plus visual regression on the theme.
+10. **Full E2E suite in CI** against a seeded dev store, plus visual regression on the theme. The
+    Flight Builder's keyboard-only path (Tab/Arrow/Enter/Space through size selection, the sauce
+    rail, and add-to-cart) is verified manually today, repeated after every accessibility fix in
+    the Day 6 pass — but there's no Playwright coverage locking it in, so a regression here would
+    only surface the next time someone happens to test it by hand.
+11. **Per-bundle activity view.** `activity_log` already carries `entityType`/`entityId` and a
+    full before/after diff per row, written in the same transaction as the change — the data model
+    supports filtering by bundle. The UI doesn't yet: `listRecentActivity` only returns a shop-wide
+    feed (shown on the Dashboard), so there's no route or panel today that filters activity down to
+    one bundle. Straightforward to add — a query, a route, a tab on the bundle editor — just not
+    built yet.
 
 ---
 
@@ -284,7 +294,25 @@ before submission:
   already had this. Added a shared `--c-focus-ring` treatment, 150ms transitions on interactive
   elements, and a subtle `box-shadow` on `.card` for depth, `prefers-reduced-motion` respected.
 
-A live screenshot review turned up two more, both real bugs rather than taste:
+A live end-to-end walkthrough of the "Verifying it works" checklist turned up two real bugs
+outside the CSS pass above:
+
+- **Number fields in the bundle editor snapped to `0` on every clear.** `minItems`/`maxItems` and
+  the price-tier inputs all called `setState(Number(e.target.value))` directly in `onChange`.
+  `Number('')` evaluates to `0`, not `NaN`, so clearing the field to retype it forced the input
+  back to displaying "0" on every keystroke — a well-known React controlled-number-input footgun.
+  Fixed in all six inputs (`BundleEditor.tsx`) by switching to `e.target.valueAsNumber` and simply
+  skipping the state update while it's `NaN` — the browser handles the empty/mid-edit state
+  natively instead of React fighting it back to zero.
+- **Cart showed "Translation missing: en.charred-pineapple."** Two compounding bugs:
+  `flight-builder.js` wrote `_flight_name: this.bundle.handle` (a URL slug) into the cart line
+  property instead of `this.bundle.title` (the human-readable name the snapshot already carries);
+  `cart-flight-group.liquid` then piped `flight_name | default: 'cart.flight.default_name' | t`
+  as one filter chain, so `| t` applied to *whatever survived* — the real flight name when
+  present, not just the fallback key. Fixed both: the JS now stores `bundle.title`, and the Liquid
+  only calls `| t` on the literal fallback key, never on dynamic content.
+
+A live screenshot review before that turned up two more, both real bugs rather than taste:
 
 - **The Healthy/Watch/At-risk KPI tiles on the dashboard referenced CSS classes that didn't
   exist** (`badge--healthy-text` and siblings, never defined in `styles.css`) — so all three

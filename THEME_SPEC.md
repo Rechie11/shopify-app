@@ -452,5 +452,46 @@ schema changed.
   image a merchant uploads) rendered at its own extreme intrinsic aspect ratio, stretching the
   whole section's height to match. Added a `batch-story__media` class with the same
   `aspect-ratio: 4/5` / `object-fit: cover` treatment already proven on product cards.
+- **"Review your flight" sat noticeably lower than "Build a flight," with dead space to its
+  right.** The size-picker step (`data-step="size"`) lived *outside* the two-column grid, so the
+  grid — rail column + review aside — only started once "Pick your bottles" began; the review
+  card had nothing to align against until then. Moved the size step inside the grid's left column
+  (`.flight-builder__rail-column`), so the review aside now sits beside it from the very top of
+  the section instead of starting a full step later. The picker (slots + sauce rail) still only
+  reveals once a size is chosen — that gating moved from the whole grid (`data-flight-body`) to
+  just that inner block (`data-flight-picker`), so progressive disclosure is unchanged; only what
+  it hides got narrower.
+- **Cart subtotal didn't update after removing a flight or changing a quantity — only a full page
+  reload showed the new total.** `cart.js`'s quantity and flight-removal handlers updated the
+  header cart-count badge from the AJAX response, but never touched the subtotal rendered on the
+  page itself, since that's plain server-rendered Liquid (`{{ cart.total_price | money }}`) with no
+  client-side counterpart. Added a `data-cart-subtotal` hook and an `updateSubtotal()` helper using
+  `Intl.NumberFormat` with the cart response's own `currency` field — correct for any shop
+  currency, not just USD, and consistent with the "don't guess at money formatting in JS"
+  principle already established for the Flight Builder's pricing. Wired into both the quantity
+  +/- controls and the flight-removal handler. The free-shipping progress bar has the same
+  underlying gap (computed from `cart.total_price` at render time only) and wasn't fixed in this
+  pass — narrower scope, flagged here rather than left silently unaddressed.
+- **A solo (non-flight) line item's own total didn't update on quantity change either** — same
+  root cause as the subtotal, one level down: `{{ item.final_line_price | money }}` is rendered
+  once server-side, and the quantity +/- handler only ever updated the quantity number itself.
+  Added `data-line-price` and an `updateLinePrice()` helper that finds the changed line by key in
+  the AJAX response's `cart.items` and refreshes its total from `item.final_line_price`.
+- **The Flight Builder never reset after successfully adding a flight to cart.** State persistence
+  (URL hash + sessionStorage, §4.6) is deliberate — it's meant to survive an accidental refresh or
+  back-button press. But `addFlightToCart()` never cleared that persisted state on success, so
+  navigating back to the builder after buying a flight re-filled every slot with the exact
+  selection just purchased, as if nothing had happened. Added `clearPersistedState()` (strips the
+  URL hash, removes the sessionStorage key) and call it right after a successful add, before the
+  redirect to `/cart`. Refresh/back-button persistence *before* a successful add is unaffected.
+- **"Shop by heat" only ever filtered whatever was already on the page.** This is correct, deliberate
+  behaviour on a collection page (§3.2: drives Shopify's native `filter.p.m.custom.heat_level`,
+  which genuinely re-queries the collection) — but on the homepage, `heat-index-rail.liquid`
+  renders a fixed `products_to_show` slice of the collection into the DOM once, and the filter only
+  toggles `[hidden]` on cards already there. With a 33-product catalogue and the schema's old
+  default of 12 (max 24), most products were never rendered at all, so no amount of filtering could
+  surface them - not a broken filter, just a ceiling that made sense at 18 products and didn't at
+  33. Raised the range to default 36 / max 48, and added an `info` string on the setting itself
+  explaining the tradeoff so a future merchant adjusting it understands why the number matters.
 
 Verified with `shopify theme check` (41 files, 0 offenses) after each change.

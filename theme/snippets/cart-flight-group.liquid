@@ -23,7 +23,13 @@
           -%}
         {%- endif -%}
       {%- endfor -%}
-      <p class="cart-flight-group__title">{{ flight_name | default: 'cart.flight.default_name' | t }}</p>
+      <p class="cart-flight-group__title">
+        {%- if flight_name != blank -%}
+          {{ flight_name }}
+        {%- else -%}
+          {{ 'cart.flight.default_name' | t }}
+        {%- endif -%}
+      </p>
       <p class="muted">{{ 'cart.flight.bottle_count' | t: count: flight_quantity }}</p>
     </div>
     <div class="cart-flight-group__stack" aria-hidden="true">

@@ -164,18 +164,12 @@ npm run typecheck     # tsc --noEmit across all workspaces
 
 A five-minute check that exercises the whole system:
 
-1. **App loads** — open Bundle Studio in Shopify admin. The dashboard shows four bundles and at
-   least one open alert.
-2. **CRUD** — create a bundle, add three products, set price tiers, publish. A matching automatic
-   discount appears under **Discounts** in Shopify admin.
-3. **Audit** — open the bundle's Activity tab. Every change is listed with a before/after diff.
-4. **Storefront** — open the theme, build a flight, watch the balance coaching, take a suggested
-   swap, add it to the cart. The cart shows one grouped flight card.
-5. **The full loop** — complete a test checkout. Within a minute the order appears attributed to
-   the bundle and the bundle's score moves.
-6. **The logic feature** — in Shopify admin, drop the inventory of a component in an active
-   bundle. Within a minute the bundle drops to **At risk**, names the limiting variant, and
-   recommends a specific swap.
+1. **App loads** — open Bundle Studio in Shopify admin. The dashboard shows four bundles and atleast one open alert.
+2. **CRUD** — create a bundle, add three products, set price tiers, publish. A matching automatic discount appears under **Discounts** in Shopify admin.
+3. **Audit** — open the Dashboard's Recent Activity feed. Every change across the shop is listed with an actor, an action, and a timestamp; the underlying `activity_log` row also carries a full before/after diff, though the UI surfaces it shop-wide rather than filtered per bundle (see `APP_DECISIONS.md` §5 for what's next).
+4. **Storefront** — open the theme, build a flight, watch the balance coaching, take a suggested swap, add it to the cart. The cart shows one grouped flight card.
+5. **The full loop** — complete a test checkout. Within a minute the order appears attributed to the bundle and the bundle's score moves.
+6. **The logic feature** — in Shopify admin, drop the inventory of a component in an active bundle. Within a minute the bundle drops to **At risk**, names the limiting variant, and recommends a specific swap.
 
 Step 6 is the one to watch. Everything else is infrastructure holding it up.
 
@@ -206,8 +200,11 @@ npm test
   HMAC rejection, idempotent webhook replay, cross-shop isolation
 - **Contract** — a property test asserting the storefront price and the server price agree across
   200 randomised selections
-- **E2E** (`npm run test:e2e`) — Playwright: the Flight Builder completed keyboard-only, the
-  add-to-cart payload shape, and the proxy-failure fallback
+- **Manual** — the Flight Builder verified keyboard-only end to end (Tab/Arrow/Enter/Space through
+  size selection, the sauce rail, and add-to-cart) directly against the storefront, and again after
+  every accessibility fix in this pass. No automated E2E suite exists yet — `npm run test:e2e`
+  is wired to `--if-present` and currently finds nothing to run, since `app/web` has no Playwright
+  config or test files — tracked in `APP_DECISIONS.md` §5
 
 ---
 

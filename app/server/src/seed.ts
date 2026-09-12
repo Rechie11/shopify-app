@@ -247,15 +247,21 @@ async function main(): Promise<void> {
   const pool = products.filter((p) => p.handle !== 'charred-pineapple');
   const byPriceDesc = [...pool].sort((a, b) => b.priceCents - a.priceCents);
 
-  const healthyItems = byPriceDesc.slice(0, 4);
-  const watchItems = byPriceDesc.slice(4, 8);
-  const atRiskOthers = byPriceDesc.slice(8, 10);
-  const draftItems = byPriceDesc.slice(10, 13).length >= 3 ? byPriceDesc.slice(10, 13) : byPriceDesc.slice(0, 3);
+  // At least 6-8 distinct items per bundle, not just the 3-4 minimum -
+  // otherwise a customer building a max-size (6-bottle) flight only has
+  // 4 sauces to choose from, which makes the rail feel sparse and the
+  // balance/swap-suggestion feature has nothing to actually suggest.
+  const ITEMS_PER_BUNDLE = 8;
+  const healthyItems = byPriceDesc.slice(0, ITEMS_PER_BUNDLE);
+  const watchItems = byPriceDesc.slice(ITEMS_PER_BUNDLE, ITEMS_PER_BUNDLE * 2);
+  const atRiskOthers = byPriceDesc.slice(ITEMS_PER_BUNDLE * 2, ITEMS_PER_BUNDLE * 2 + 2);
+  const draftPool = byPriceDesc.slice(ITEMS_PER_BUNDLE * 2 + 2, ITEMS_PER_BUNDLE * 2 + 2 + ITEMS_PER_BUNDLE);
+  const draftItems = draftPool.length >= 3 ? draftPool : byPriceDesc.slice(0, ITEMS_PER_BUNDLE);
 
   if (healthyItems.length < 3 || watchItems.length < 3 || atRiskOthers.length < 2) {
     console.error(
       `Not enough distinct products (${products.length}) to build 3 non-overlapping bundles ` +
-        'of 3-4 items each plus Charred Pineapple. Add more products to the store.',
+        'with real variety plus Charred Pineapple. Add more products to the store.',
     );
     process.exit(1);
   }

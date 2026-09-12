@@ -2,7 +2,7 @@
 
 **Project:** Custom Shopify theme + embedded Shopify admin app
 **Stack:** Shopify Liquid · Vite · Node.js · Drizzle ORM · MySQL 8
-**Author:** Cherry Anne Dagunan
+**Author:** Rechie Dagunan
 **Presentation:** 14 September 2026
 
 ---
@@ -69,27 +69,31 @@ ember-and-ash/
    │  │  ├─ index.ts                # composition root
    │  │  ├─ config/env.ts           # zod-validated environment
    │  │  ├─ http/
-   │  │  │  ├─ plugins/             # auth, error handler, request-id, cors, rate-limit
-   │  │  │  └─ routes/
-   │  │  │     ├─ admin/            # /api/*      session-token authed (the merchant UI)
-   │  │  │     ├─ proxy/            # /proxy/*    app-proxy signed (the storefront)
-   │  │  │     ├─ webhooks/         # /webhooks/* HMAC verified
-   │  │  │     └─ health.ts         # /healthz /readyz
+   │  │  │  ├─ plugins/             # auth.ts, app-proxy.ts, error-handler.ts
+   │  │  │  ├─ pagination.ts
+   │  │  │  └─ routes/              # flat — auth, bundles, dashboard, alerts, products,
+   │  │  │                          # proxy, webhooks, health all sit directly here
    │  │  ├─ services/               # business logic — the only layer with rules in it
    │  │  │  ├─ bundle.service.ts
-   │  │  │  ├─ scoring.service.ts   # the logic feature
-   │  │  │  ├─ alert.service.ts
+   │  │  │  ├─ score.service.ts     # the logic feature
    │  │  │  ├─ activity.service.ts
-   │  │  │  └─ metrics.service.ts   # velocity + attach-rate rollups
+   │  │  │  └─ flight-snapshot.service.ts
    │  │  ├─ repositories/           # Drizzle queries only; every method takes shopId
+   │  │  │                          # (bundle, bundle-order, alert, score, metrics,
+   │  │  │                          #  shop, webhook-event)
    │  │  ├─ shopify/
    │  │  │  ├─ auth.ts              # token exchange + session token verification
    │  │  │  ├─ admin-client.ts      # GraphQL client w/ cost-aware throttling
    │  │  │  ├─ webhooks.ts          # registration + HMAC verify
+   │  │  │  ├─ app-proxy.ts         # app-proxy signature verification
+   │  │  │  ├─ queries.ts           # typed Admin GraphQL documents
    │  │  │  └─ crypto.ts            # AES-256-GCM token encryption
-   │  │  ├─ jobs/                   # worker loop + handlers
-   │  │  └─ domain/                 # pure functions: scoring math, pricing, rules
-   │  └─ test/                      # vitest: unit (domain) + integration (routes)
+   │  │  ├─ jobs/                   # queue.ts + worker.ts, handlers/ (score-recompute,
+   │  │  │                          # inventory-sync, products-sync, metrics-rollup,
+   │  │  │                          # discount-reconcile, shop-uninstalled, compliance)
+   │  │  └─ domain/                 # pure functions: scoring, pricing, rules,
+   │  │                             # flight-coaching, flight-snapshot, order-attribution
+   │  └─ test/                      # vitest: unit (domain) + integration (http/repositories)
    │
    ├─ web/                          # Vite 6 + React 19 + Polaris web components
    │  ├─ vite.config.ts
@@ -97,7 +101,7 @@ ember-and-ash/
    │  └─ src/
    │     ├─ main.tsx
    │     ├─ lib/authenticated-fetch.ts   # attaches shopify.idToken(), retries on 401
-   │     ├─ routes/                      # Dashboard, Bundles, BundleEditor, Activity, Alerts
+   │     ├─ routes/                      # Dashboard (KPIs, alerts, activity feed), BundleList, BundleEditor
    │     └─ components/
    │
    └─ db/                           # Drizzle package (shared types)
@@ -245,21 +249,24 @@ All admin responses are `application/json`, envelope-free, with errors as
 
 | Method   | Path                             | Purpose                                                        |
 | -------- | -------------------------------- | -------------------------------------------------------------- |
-| `GET`    | `/api/dashboard/summary`         | KPI tiles, score distribution, open alerts, recent activity    |
+| `GET`    | `/api/dashboard/summary`         | KPI tiles, score distribution, open alerts, shop-wide recent activity (last 20) |
 | `GET`    | `/api/bundles`                   | List. Query: `status`, `band`, `q`, `cursor`, `limit`          |
 | `POST`   | `/api/bundles`                   | Create (draft). Body validated by zod                          |
 | `GET`    | `/api/bundles/:id`               | Bundle + items + tiers + rules + current score                 |
 | `PATCH`  | `/api/bundles/:id`               | Partial update; writes an activity diff                        |
+| `PUT`    | `/api/bundles/:id/composition`   | Replace items/tiers; writes an activity diff                   |
 | `POST`   | `/api/bundles/:id/publish`       | Validate → create/update Shopify automatic discount → activate |
 | `POST`   | `/api/bundles/:id/pause`         | Deactivate discount, keep the record                           |
 | `DELETE` | `/api/bundles/:id`               | Soft delete (`deleted_at`)                                     |
-| `GET`    | `/api/bundles/:id/score`         | Current score **plus its full breakdown and reason**           |
-| `GET`    | `/api/bundles/:id/score/history` | Time series for the trend sparkline                            |
-| `GET`    | `/api/bundles/:id/activity`      | Paginated audit trail for this bundle                          |
-| `GET`    | `/api/activity`                  | Shop-wide activity feed                                        |
+| `GET`    | `/api/bundles/:id/score/history` | Time series for the trend sparkline; latest row is the current score |
 | `GET`    | `/api/alerts`                    | Open alerts, newest first                                      |
 | `POST`   | `/api/alerts/:id/acknowledge`    | Ack, with optional note                                        |
 | `GET`    | `/api/products/search?q=`        | Proxied Admin GraphQL product search, 60s cached               |
+
+There is no per-bundle activity endpoint (`/api/bundles/:id/activity`) and no standalone
+`/api/activity` — only the shop-wide feed above exists today. `activity_log` already has the
+columns to support a per-bundle query (`entityType`/`entityId`); it just isn't wired to a route or
+a UI panel yet. See `APP_DECISIONS.md` §5.
 
 Pagination is cursor-based (opaque base64 of `{id, sortKey}`) everywhere. Offset pagination is
 not used — it breaks under concurrent writes and it is the kind of detail an interviewer checks.
@@ -472,11 +479,12 @@ them for any public app.
 | Domain (pure) | vitest                        | Scoring math against fixture tables, including boundaries: zero velocity, zero on-hand, single-item bundle, all-identical heat levels |
 | Repository    | vitest + Testcontainers MySQL | Real SQL against a real MySQL, migrations applied — not a mock                                                                        |
 | HTTP          | vitest + `fastify.inject()`   | Auth rejection paths, HMAC rejection, idempotent webhook replay, cross-shop isolation                                                 |
-| Theme         | Playwright                    | Flight Builder: keyboard-only completion, add-to-cart payload shape, proxy-failure fallback                                           |
+| Theme         | Manual (no Playwright yet)    | Flight Builder verified keyboard-only end to end by hand — size selection, the sauce rail, add-to-cart — repeated after every accessibility fix. No automated coverage locks this in yet; see `APP_DECISIONS.md` §5 |
 | Contract      | vitest                        | The storefront price and the server price agree for 200 randomised selections                                                         |
 
-The last row is the one worth pointing at in the presentation: it is a property test that
-guarantees the demo cannot show a price the backend disagrees with.
+The contract row is the one worth pointing at in the presentation: it is a property test that
+guarantees the demo cannot show a price the backend disagrees with. The theme row is the honest
+gap — real, manually-verified behaviour, but not yet backed by an automated suite.
 
 ---
 

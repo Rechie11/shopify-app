@@ -41,46 +41,48 @@
         <script type="application/json" data-flight-snapshot>{{ flight_bundle | json }}</script>
 
         <div class="flight-builder__skeleton" data-flight-skeleton>
-          <div class="flight-builder__step" data-step="size">
-            <h3>{{ 'sections.flight_builder.step_size' | t }}</h3>
-            <div class="flight-builder__size-options" role="radiogroup" aria-label="{{ 'sections.flight_builder.step_size' | t }}">
-              {%- for size in (flight_bundle.minItems..flight_bundle.maxItems) -%}
-                <button type="button" class="button flight-builder__size-option" role="radio" aria-checked="false" data-size-option="{{ size }}">
-                  {{ size }}
-                </button>
-              {%- endfor -%}
-            </div>
-          </div>
-
-          <div class="flight-builder__body" data-flight-body hidden>
+          <div class="flight-builder__body" data-flight-body>
             <div class="flight-builder__rail-column">
-              <h3>{{ 'sections.flight_builder.step_select' | t }}</h3>
-              <div class="flight-builder__slots" role="list" data-flight-slots aria-label="{{ 'sections.flight_builder.slots_label' | t }}"></div>
+              <div class="flight-builder__step" data-step="size">
+                <h3>{{ 'sections.flight_builder.step_size' | t }}</h3>
+                <div class="flight-builder__size-options" role="radiogroup" aria-label="{{ 'sections.flight_builder.step_size' | t }}">
+                  {%- for size in (flight_bundle.minItems..flight_bundle.maxItems) -%}
+                    <button type="button" class="button flight-builder__size-option" role="radio" aria-checked="false" data-size-option="{{ size }}">
+                      {{ size }}
+                    </button>
+                  {%- endfor -%}
+                </div>
+              </div>
 
-              <div
-                class="heat-rail flight-builder__sauce-rail"
-                role="listbox"
-                aria-label="{{ 'sections.flight_builder.rail_label' | t }}"
-                data-sauce-rail
-              >
-                {%- for item in flight_bundle.items -%}
-                  <button
-                    type="button"
-                    class="heat-rail__item flight-builder__sauce"
-                    role="option"
-                    aria-selected="false"
-                    data-variant-gid="{{ item.variantGid }}"
-                    data-product-title="{{ item.productTitle | escape }}"
-                    data-heat-level="{{ item.heatLevel }}"
-                    data-flavor-profile="{{ item.flavorProfile }}"
-                    data-unit-price-cents="{{ item.unitPriceCents }}"
-                    data-image-url="{{ item.imageUrl }}"
-                    data-available="{{ item.available }}"
-                  >
-                    <span class="heat-rail__flame" data-heat="{{ item.heatLevel }}" style="background: var(--c-heat-{{ item.heatLevel | default: 0 }});"></span>
-                    <span class="heat-rail__label">{{ item.productTitle }}</span>
-                  </button>
-                {%- endfor -%}
+              <div class="flight-builder__picker" data-flight-picker hidden>
+                <h3>{{ 'sections.flight_builder.step_select' | t }}</h3>
+                <div class="flight-builder__slots" role="list" data-flight-slots aria-label="{{ 'sections.flight_builder.slots_label' | t }}"></div>
+
+                <div
+                  class="heat-rail flight-builder__sauce-rail"
+                  role="listbox"
+                  aria-label="{{ 'sections.flight_builder.rail_label' | t }}"
+                  data-sauce-rail
+                >
+                  {%- for item in flight_bundle.items -%}
+                    <button
+                      type="button"
+                      class="heat-rail__item flight-builder__sauce"
+                      role="option"
+                      aria-selected="false"
+                      data-variant-gid="{{ item.variantGid }}"
+                      data-product-title="{{ item.productTitle | escape }}"
+                      data-heat-level="{{ item.heatLevel }}"
+                      data-flavor-profile="{{ item.flavorProfile }}"
+                      data-unit-price-cents="{{ item.unitPriceCents }}"
+                      data-image-url="{{ item.imageUrl }}"
+                      data-available="{{ item.available }}"
+                    >
+                      <span class="heat-rail__flame" data-heat="{{ item.heatLevel }}" style="background: var(--c-heat-{{ item.heatLevel | default: 0 }});"></span>
+                      <span class="heat-rail__label">{{ item.productTitle }}</span>
+                    </button>
+                  {%- endfor -%}
+                </div>
               </div>
             </div>
 

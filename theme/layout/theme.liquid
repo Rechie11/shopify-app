@@ -10,7 +10,9 @@
     {%- render 'meta-tags' -%}
 
     <link rel="preconnect" href="https://cdn.shopify.com" crossorigin>
-    <link rel="icon" href="{{ settings.favicon | image_url: width: 32 }}" type="image/png">
+    {%- if settings.favicon -%}
+      <link rel="icon" href="{{ settings.favicon | image_url: width: 32 }}" type="image/png">
+    {%- endif -%}
 
     {{ content_for_header }}
 

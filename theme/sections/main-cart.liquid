@@ -68,7 +68,7 @@
                   </div>
                 </div>
                 <div class="text-center">
-                  <strong>{{ item.final_line_price | money }}</strong>
+                  <strong data-line-price>{{ item.final_line_price | money }}</strong>
                 </div>
               </div>
             {%- endif -%}
@@ -93,7 +93,7 @@
         {%- endif -%}
 
         <div style="display:flex; justify-content: space-between; align-items:center; margin-top: var(--s-6);">
-          <p style="font-size: var(--step-1);">{{ 'cart.general.subtotal' | t }}: <strong>{{ cart.total_price | money }}</strong></p>
+          <p style="font-size: var(--step-1);">{{ 'cart.general.subtotal' | t }}: <strong data-cart-subtotal>{{ cart.total_price | money }}</strong></p>
           <button type="submit" name="checkout" class="button button--primary">{{ 'cart.general.checkout' | t }}</button>
         </div>
       </form>

@@ -8,6 +8,7 @@
     "build": "tsc -p tsconfig.json",
     "start": "node dist/index.js",
     "seed": "tsx --env-file=../../.env src/seed.ts",
+    "seed:products": "tsx --env-file=../../.env src/seed-products.ts",
     "test": "vitest run",
     "typecheck": "tsc --noEmit"
   },

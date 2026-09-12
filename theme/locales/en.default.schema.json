@@ -54,6 +54,7 @@
       "heading": "Heading",
       "collection": "Collection to filter",
       "products_to_show": "Products to show",
+      "products_to_show_info": "Filtering only toggles visibility on products already rendered here - raise this if the heat filter should be able to surface your full catalogue rather than just the first few.",
       "blocks": {
         "tier": {
           "name": "Heat tier",

@@ -25,7 +25,7 @@ class FlightBuilder extends HTMLElement {
     this.bundle = JSON.parse(snapshotScript.textContent);
 
     this.skeleton = this.querySelector('[data-flight-skeleton]');
-    this.body = this.querySelector('[data-flight-body]');
+    this.picker = this.querySelector('[data-flight-picker]');
     this.slotsEl = this.querySelector('[data-flight-slots]');
     this.railEl = this.querySelector('[data-sauce-rail]');
     this.priceTotalEl = this.querySelector('[data-price-total]');
@@ -72,7 +72,7 @@ class FlightBuilder extends HTMLElement {
     this.querySelectorAll('[data-size-option]').forEach((button) => {
       button.setAttribute('aria-checked', String(Number(button.dataset.sizeOption) === size));
     });
-    this.body.hidden = false;
+    this.picker.hidden = false;
     this.renderSlots();
     this.updateComputedState();
   }
@@ -345,7 +345,7 @@ class FlightBuilder extends HTMLElement {
             quantity: 1,
             properties: {
               _flight_id: this.flightToken,
-              _flight_name: this.bundle.handle,
+              _flight_name: this.bundle.title,
               _flight_slot: String(index + 1),
             },
           })),
@@ -355,6 +355,10 @@ class FlightBuilder extends HTMLElement {
 
       window.EmberAsh?.announce?.('Flight added to your cart.');
       this.flightToken = generateFlightToken();
+      // A flight that's just been bought is a stale one to restore later -
+      // without this, coming back to this page (even after visiting the
+      // cart) re-fills the builder with the exact selection just purchased.
+      this.clearPersistedState();
       window.location.href = `${window.Shopify?.routes?.root ?? '/'}cart`;
     } catch {
       this.errorEl.hidden = false;
@@ -379,6 +383,15 @@ class FlightBuilder extends HTMLElement {
     } catch {
       // Private browsing or storage disabled - URL hash persistence alone
       // still covers refresh/back-button/share.
+    }
+  }
+
+  clearPersistedState() {
+    window.history.replaceState({}, '', window.location.pathname + window.location.search);
+    try {
+      window.sessionStorage.removeItem(`emberash:flight:${this.bundleHandle}`);
+    } catch {
+      // Nothing to clear if storage was never available.
     }
   }
 
